@@ -1,0 +1,152 @@
+﻿@using TechWorld.Areas.Admin.Utils
+@model TechWorld.Models.Order
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng #" + Model.OrderNumber;
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <h1 class="mt-4">Chi tiết đơn hàng #@Model.OrderNumber</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Dashboard">Bảng điều khiển</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Đơn hàng</a></li>
+        <li class="breadcrumb-item active">Chi tiết</li>
+    </ol>
+
+    @* Hiển thị các thông báo TempData *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["InfoMessage"] != null)
+    {
+        <div class="alert alert-info">@TempData["InfoMessage"]</div>
+    }
+
+    <div class="row">
+        <!-- Cột trái: Thông tin đơn hàng và sản phẩm -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Thông tin chung</h5>
+                    <span class="badge bg-@GetStatusColor(Model.OrderStatus)">@Model.OrderStatus</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Mã đơn hàng:</strong> @Model.OrderNumber</p>
+                            <p><strong>Ngày đặt:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                            <p><strong>Khách hàng:</strong> @(Model.User?.FullName ?? "Khách vãng lai")</p>
+                            <p><strong>Email:</strong> @(Model.User?.Email ?? "N/A")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Địa chỉ giao hàng:</strong> @Model.ShippingAddress</p>
+                            <p><strong>Phương thức thanh toán:</strong> @Model.PaymentMethod?.MethodName</p>
+                            <p class="mb-0"><strong>Tổng tiền:</strong> <span class="fw-bold text-danger">@Model.TotalAmount?.ToString("N0") VNĐ</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>Các sản phẩm trong đơn</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th class="text-end">Đơn giá</th>
+                                    <th class="text-end">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.OrderDetails)
+                                {
+                                    <tr>
+                                        <td>@item.Product.ProductName</td>
+                                        <td class="text-center">@item.Quantity</td>
+                                        <td class="text-end">@item.UnitPrice.ToString("N0")</td>
+                                        <td class="text-end fw-bold">@(item.Quantity* item.UnitPrice).ToString("N0")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Cập nhật trạng thái và lịch sử -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Cập nhật trạng thái</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateStatus" method="post">
+                        <input type="hidden" name="orderId" value="@Model.OrderID" />
+                        <div class="mb-3">
+                            <label for="newStatus" class="form-label">Chọn trạng thái mới</label>
+                            <select name="newStatus" class="form-select">
+                                @foreach (var status in ViewBag.StatusList as List<string>)
+                                {
+                                    <option value="@status" selected="@(Model.OrderStatus == status)">@status</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="statusDescription" class="form-label">Ghi chú (tùy chọn)</label>
+                            <input type="text" name="statusDescription" class="form-control" placeholder="VD: Admin đã xác nhận thanh toán." />
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Lưu thay đổi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Lịch sử trạng thái</h5>
+                </div>
+                <div class="card-body">
+                    @foreach (var status in Model.OrderStatuses)
+                    {
+                        <div class="mb-3 border-start border-3 ps-3 border-@GetStatusColor(status.Status)">
+                            <p class="fw-bold mb-0">@status.Status</p>
+                            <p class="small text-muted mb-1">@status.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                            <p class="mb-0">@status.Description</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i>Quay lại danh sách</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@functions {
+    // Helper function để lấy màu cho badge và border
+    private string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            OrderStatusManager.PendingConfirmation => "warning",
+            OrderStatusManager.AwaitingPayment => "secondary",
+            OrderStatusManager.Confirmed => "info",
+            OrderStatusManager.Processing => "primary",
+            OrderStatusManager.Shipping => "primary",
+            OrderStatusManager.Completed => "success",
+            OrderStatusManager.Cancelled => "danger",
+            _ => "dark"
+        };
+    }
+}

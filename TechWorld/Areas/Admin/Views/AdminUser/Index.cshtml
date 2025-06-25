@@ -1,0 +1,144 @@
+﻿@model IEnumerable<TechWorld.Models.User>
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <h1 class="mt-4">Quản lý người dùng</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Bảng điều khiển</a></li>
+        <li class="breadcrumb-item active">Người dùng</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-users mr-1"></i>
+                Danh sách người dùng
+            </div>
+            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Thêm người dùng
+            </a>
+        </div>
+        <div class="card-body">
+            <form method="get" action="@Url.Action("Index")" class="mb-4">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Tìm kiếm</label>
+                            <input type="text" class="form-control" name="searchString" value="@ViewBag.SearchString" placeholder="Tên, email...">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Vai trò</label>
+                            <select class="form-control" name="role">
+                                <option value="">Tất cả</option>
+                                @foreach (var role in ViewBag.Roles)
+                                {
+                                    <option value="@role" selected="@(ViewBag.Role == role ? "selected" : "")">@role</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary mt-4">
+                            <i class="fas fa-search mr-1"></i> Tìm
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="usersTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Tên đăng nhập</th>
+                            <th>Họ tên</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Vai trò</th>
+                            <th>Hạng</th>
+                            <th>Điểm</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td>@user.UserName</td>
+                                <td>@user.FullName</td>
+                                <td>@user.Email</td>
+                                <td>@user.Phone</td>
+                                <td>@user.Role</td>
+                                <td>@(user.Rank?.RankName ?? "Không có")</td>
+                                <td>@user.Points</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="@Url.Action("Edit", new { id = user.UserID })" class="btn btn-sm btn-info" title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-danger btn-delete" data-toggle="modal" data-target="#deleteModal" data-id="@user.UserID" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn xóa người dùng này? Thao tác này không thể hoàn tác.</p>
+                </div>
+                <div class="modal-footer">
+                    <form id="deleteForm" method="post" asp-action="Delete">
+                        <input type="hidden" name="UserID" id="deleteUserID" />
+                        <button type="submit" class="btn btn-danger">Xóa</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#usersTable').DataTable({
+                "paging": true,
+                "lengthChange": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "autoWidth": false,
+                "responsive": true,
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Vietnamese.json"
+                }
+            });
+
+            $('.btn-delete').click(function () {
+                const userId = $(this).data('id');
+                $('#deleteUserID').val(userId);
+            });
+        });
+    </script>
+}

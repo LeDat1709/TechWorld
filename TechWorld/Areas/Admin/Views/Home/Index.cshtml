@@ -1,0 +1,226 @@
+﻿@model object
+@{
+    ViewData["Title"] = "Admin Index";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3>@ViewBag.TotalRevenue.ToString("N0") VNĐ</h3>
+                    <p>Tổng doanh thu</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3>@ViewBag.TotalOrders</h3>
+                    <p>Tổng đơn hàng</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3>@ViewBag.TotalCustomers</h3>
+                    <p>Tổng số khách hàng</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-danger">
+                <div class="inner">
+                    <h3>@ViewBag.BestSellingProduct</h3>
+                    <p>Sản phẩm bán chạy nhất</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h2 class="mt-4">Biểu đồ doanh thu theo tháng</h2>
+            <label for="yearSelect">Chọn năm:</label>
+            <select id="yearSelect" class="form-control w-25 mb-4" onchange="updateChart()">
+                @foreach (var year in Enumerable.Range(2000, DateTime.Now.Year - 2000 + 1).Reverse())
+                {
+                    if (year == DateTime.Now.Year)
+                    {
+                        <option value="@year" selected>@year</option>
+                    }
+                    else
+                    {
+                        <option value="@year">@year</option>
+                    }
+                }
+            </select>
+            <canvas id="revenueChart" width="400" height="200"></canvas>
+        </div>
+        <div class="col-md-6">
+            <h2 class="mt-4">Trạng thái đơn hàng</h2>
+            <canvas id="statusChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mt-4">Đơn hàng gần đây</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày đặt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in ViewBag.RecentOrders)
+                        {
+                            <tr>
+                                <td>@order.OrderNumber</td>
+                                <td>@order.User?.FullName</td>
+                                <td>@order.TotalAmount.ToString("N0") VNĐ</td>
+                                <td>
+                                    @switch (order.OrderStatus)
+                                    {
+                                        case "Pending":
+                                            <span class="badge badge-warning">Đang xử lý</span>
+                                            break;
+                                        case "Confirmed":
+                                            <span class="badge badge-info">Đã xác nhận</span>
+                                            break;
+                                        case "Shipped":
+                                            <span class="badge badge-primary">Đang giao</span>
+                                            break;
+                                        case "Delivered":
+                                            <span class="badge badge-success">Hoàn thành</span>
+                                            break;
+                                        case "Cancelled":
+                                            <span class="badge badge-danger">Đã hủy</span>
+                                            break;
+                                        default:
+                                            <span class="badge badge-secondary">@order.OrderStatus</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let revenueChart;
+    let statusChart;
+
+    function renderRevenueChart(labels, data) {
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        if (revenueChart) revenueChart.destroy();
+
+        revenueChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Doanh thu (VND)',
+                    data: data,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChart() {
+        const year = document.getElementById('yearSelect').value;
+        fetch(`/Admin/Home/GetRevenueByMonth?year=${year}`)
+            .then(response => response.json())
+            .then(data => {
+                renderRevenueChart(data.labels, data.revenues);
+            })
+            .catch(error => console.error('Lỗi khi tải dữ liệu:', error));
+    }
+
+    function renderStatusChart() {
+        const ctx = document.getElementById('statusChart').getContext('2d');
+        if (statusChart) statusChart.destroy();
+
+        statusChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: [@Html.Raw(string.Join(",", ViewBag.OrderStatusLabels))],
+                datasets: [{
+                    label: 'Số lượng đơn hàng',
+                    data: [@Html.Raw(string.Join(",", ViewBag.OrderStatusCounts))],
+                    backgroundColor: [
+                        'rgba(255, 193, 7, 0.2)',  // Pending
+                        'rgba(40, 167, 69, 0.2)',  // Confirmed
+                        'rgba(0, 123, 255, 0.2)',  // Shipped
+                        'rgba(75, 192, 192, 0.2)', // Delivered
+                        'rgba(220, 53, 69, 0.2)'   // Cancelled
+                    ],
+                    borderColor: [
+                        'rgba(255, 193, 7, 1)',
+                        'rgba(40, 167, 69, 1)',
+                        'rgba(0, 123, 255, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(220, 53, 69, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateChart();
+        renderStatusChart();
+    });
+</script>

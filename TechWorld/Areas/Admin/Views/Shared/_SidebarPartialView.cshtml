@@ -1,0 +1,163 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a class="brand-link">
+        <img src="~/dist/img/AdminLTELogo.png" alt="Admin Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+        <span class="brand-text font-weight-light">Admin</span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <!-- Sidebar user panel (optional) -->
+        <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+            <div class="info">
+                <a href="#" class="d-block" style="color:white">
+                    @Context.Session.GetString("UserEmail")
+                </a>
+            </div>
+        </div>
+
+        <!-- SidebarSearch Form -->
+        <div class="form-inline">
+            <div class="input-group" data-widget="sidebar-search">
+                <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search">
+                <div class="input-group-append">
+                    <button class="btn btn-sidebar">
+                        <i class="fas fa-search fa-fw"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Menu -->
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <!-- Add icons to the links using the .nav-icon class
+                     with font-awesome or any other icon font library -->
+                <li class="nav-item ">
+                    <a asp-area="Admin" asp-controller="Home" asp-action="Index" class="nav-link ">
+                        <i class="nav-icon fas fa-tachometer-alt"></i>
+                        <p>
+                            Dashboard
+
+                        </p>
+                    </a>
+
+                </li>
+                <li class="nav-item">
+                    <a asp-area="Admin" asp-controller="AdminCategory" asp-action="Index" class="nav-link">
+                        <i class="nav-icon fas fa-th"></i>
+                        <p>
+                            Quản lý danh mục
+
+                        </p>
+                    </a>
+                </li>
+
+
+                <li class="nav-item">
+                    <a asp-area="Admin" asp-controller="AdminProduct" asp-action="Index" class="nav-link">
+                        <i class="nav-icon fas fa-laptop"></i>
+                        <p>
+                            Quản lý sản phẩm
+
+
+                        </p>
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+                    <a asp-area="Admin" asp-controller="AdminOrder" asp-action="Index" class="nav-link">
+                        <i class="nav-icon fas fa-truck"></i>
+                        <p>
+                            Quản lý đơn hàng
+
+                        </p>
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+                    <a asp-area="Admin" asp-controller="AdminPaymentMethod" asp-action="Index" class="nav-link">
+                        <i class="nav-icon fas fa-table"></i>
+                        <p>
+                            Quản lý phương thức thanh toán
+
+                        </p>
+                    </a>
+
+                </li>
+                <li class="nav-item">
+                    <a asp-area="Admin" asp-controller="AdminPromotion" asp-action="Index" class="nav-link">
+                        <i class="nav-icon fas fa-tags"></i>
+                        <p>
+                            Quản lý Chương trình khuyến mãi
+
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a asp-area="Admin" asp-controller="AdminUser" asp-action="Index" class="nav-link">
+                        <i class="nav-icon fas fa-user"></i>
+                        <p>
+                            Quản lý tài khoản
+
+
+                        </p>
+                    </a>
+
+                </li>
+                <li class="nav-item">
+                    <a asp-area="Admin" asp-controller="AdminRank" asp-action="Index" class="nav-link">
+                        <i class="nav-icon fas fa-trophy"></i>
+                        <p>
+                            Quản lý xếp hạng
+
+
+                        </p>
+                    </a>
+
+                </li>
+
+                <li class="nav-item mt-3 nav-item-home">
+                    <a asp-area="" asp-controller="Home" asp-action="Index" class="nav-link">
+                        <i class="nav-icon fas fa-home"></i>
+                        <p>
+                            Về trang bán hàng
+                        </p>
+                    </a>
+                </li>
+
+            </ul>
+        </nav>
+        <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+</aside>
+<style>
+    /* Tạo một đường kẻ ngang phía trên để tách biệt */
+    .nav-item-home {
+        border-top: 1px solid #4f5962;
+    }
+
+        /* Định dạng cho liên kết chính */
+        .nav-item-home .nav-link {
+            background-color: #28a745; /* Một màu xanh lá cây nổi bật */
+            color: #ffffff; /* Chữ màu trắng */
+            font-weight: bold;
+        }
+
+            /* Giữ màu cho icon */
+            .nav-item-home .nav-link i {
+                color: #ffffff !important;
+            }
+
+            /* Định dạng khi di chuột qua */
+            .nav-item-home .nav-link:hover {
+                background-color: #218838; /* Màu xanh lá cây đậm hơn */
+                color: #ffffff;
+            }
+</style>

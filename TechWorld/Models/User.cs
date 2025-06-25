@@ -52,13 +52,13 @@ namespace TechWorld.Models
         // Navigation properties
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
-        public virtual ICollection<UserAddress> UserAddresses { get; set; }
+        public virtual ICollection<UserAddress>? UserAddresses { get; set; }
 
         public int? Points { get; set; } = 0;
 
         public int? RankID { get; set; }
 
-        public Rank Rank { get; set; }
+        public Rank? Rank { get; set; }
         //public string? ResetToken { get; set; } // Token dùng để đặt lại mật khẩu
         //public DateTime? ResetTokenExpiry { get; set; } // Thời gian hết hạn của token
 

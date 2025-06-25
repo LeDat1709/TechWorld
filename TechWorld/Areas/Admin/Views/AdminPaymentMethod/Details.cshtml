@@ -1,0 +1,62 @@
+﻿@model TechWorld.Models.PaymentMethod
+@{
+    ViewData["Title"] = "Chi tiết phương thức thanh toán";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <h1 class="mt-4">Chi tiết phương thức thanh toán</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Bảng điều khiển</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Phương thức thanh toán</a></li>
+        <li class="breadcrumb-item active">Chi tiết</li>
+    </ol>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-info-circle mr-1"></i>
+            Thông tin phương thức thanh toán
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Tên phương thức</dt>
+                <dd class="col-sm-9">@Model.MethodName</dd>
+
+                <dt class="col-sm-3">Trạng thái</dt>
+                <dd class="col-sm-9">
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge badge-success">Kích hoạt</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-secondary">Không kích hoạt</span>
+                    }
+                </dd>
+            </dl>
+
+            <div class="mt-3">
+                <a asp-action="Edit" asp-route-id="@Model.PaymentMethodID" class="btn btn-primary">
+                    <i class="fas fa-edit mr-1"></i> Chỉnh sửa
+                </a>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i> Quay lại
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

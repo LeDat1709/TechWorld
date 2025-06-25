@@ -1,0 +1,82 @@
+﻿@using TechWorld.Areas.Admin.Utils
+@model TechWorld.Models.Order
+@{
+    ViewData["Title"] = "Hủy đơn hàng";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <h1 class="mt-4">Hủy đơn hàng</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Dashboard">Bảng điều khiển</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Đơn hàng</a></li>
+        <li class="breadcrumb-item active">Hủy đơn hàng</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            Xác nhận hủy đơn hàng
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <h5><i class="fas fa-info-circle me-1"></i> Bạn có chắc chắn muốn hủy đơn hàng này không?</h5>
+                <p>Thao tác này sẽ chuyển trạng thái đơn hàng thành <strong>'Đã hủy'</strong> và số lượng sản phẩm trong đơn sẽ được **hoàn trả về kho**. Thao tác không thể hoàn tác.</p>
+            </div>
+
+            <h5 class="mb-3">Thông tin đơn hàng sẽ bị hủy:</h5>
+            <dl class="row">
+                <dt class="col-sm-3">Mã đơn hàng</dt>
+                <dd class="col-sm-9">@Model.OrderNumber</dd>
+
+                <dt class="col-sm-3">Khách hàng</dt>
+                <dd class="col-sm-9">@(Model.User?.FullName ?? "Khách vãng lai")</dd>
+
+                <dt class="col-sm-3">Tổng tiền</dt>
+                <dd class="col-sm-9">@Model.TotalAmount?.ToString("N0") VNĐ</dd>
+
+                <dt class="col-sm-3">Trạng thái hiện tại</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-@GetStatusColor(Model.OrderStatus)">@Model.OrderStatus</span>
+                </dd>
+            </dl>
+
+            <hr />
+
+            <form asp-action="Cancel" method="post">
+                @* Thay vì asp-for, dùng name để khớp với tham số của action *@
+                <input type="hidden" name="orderId" value="@Model.OrderID" />
+
+                <div class="mb-3">
+                    <label for="cancelReason" class="form-label fw-bold">Lý do hủy (tùy chọn)</label>
+                    <textarea id="cancelReason" name="cancelReason" class="form-control" rows="3" placeholder="VD: Khách hàng yêu cầu hủy, sai thông tin, hết hàng..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-ban me-1"></i> Xác nhận hủy
+                </button>
+                <a asp-action="Details" asp-route-id="@Model.OrderID" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Quay lại
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@functions {
+    // Helper function để lấy màu cho badge
+    private string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            OrderStatusManager.PendingConfirmation => "warning",
+            OrderStatusManager.AwaitingPayment => "secondary",
+            OrderStatusManager.Confirmed => "info",
+            OrderStatusManager.Processing => "primary",
+            OrderStatusManager.Shipping => "primary",
+            OrderStatusManager.Completed => "success",
+            OrderStatusManager.Cancelled => "danger",
+            _ => "dark"
+        };
+    }
+}

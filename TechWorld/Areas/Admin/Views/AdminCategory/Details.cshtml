@@ -1,0 +1,36 @@
+﻿@model TechWorld.Models.Category
+
+@{
+    ViewData["Title"] = "Chi tiết danh mục";
+}
+
+<h1>Chi tiết danh mục</h1>
+
+<div>
+    <h4>@Model.CategoryName</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Tên danh mục</dt>
+        <dd class="col-sm-10">@Model.CategoryName</dd>
+        <dt class="col-sm-2">Mô tả</dt>
+        <dd class="col-sm-10">@Model.Description</dd>
+        <dt class="col-sm-2">Trạng thái</dt>
+        <dd class="col-sm-10">@(Model.IsActive ? "Kích hoạt" : "Không kích hoạt")</dd>
+        <dt class="col-sm-2">Ngày tạo</dt>
+        <dd class="col-sm-10">@Model.CreatedAt.ToString("dd/MM/yyyy")</dd>
+    </dl>
+    @if (Model.SubCategories != null && Model.SubCategories.Any())
+    {
+        <h5>Danh mục con</h5>
+        <ul>
+            @foreach (var sub in Model.SubCategories)
+            {
+                <li>@sub.SubCategoryName</li>
+            }
+        </ul>
+    }
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.CategoryID" class="btn btn-warning">Sửa</a>
+    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+</div>

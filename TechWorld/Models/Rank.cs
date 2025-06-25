@@ -18,6 +18,6 @@ namespace TechWorld.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation
-        public ICollection<User> Users { get; set; }
+        public ICollection<User>? Users { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ViewEngines;
+﻿using System;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,7 +12,7 @@ namespace TechWorld.Models
         [Required]
         [StringLength(250)]
         [Display(Name = "Tên sản phẩm")]
-        public string ProductName { get; set; }
+        public string? ProductName { get; set; }
 
         [Display(Name = "Mô tả")]
         public string Description { get; set; }
@@ -23,7 +24,7 @@ namespace TechWorld.Models
         public decimal Price { get; set; }
 
         [Display(Name = "Danh mục phụ")]
-        public int? SubCategoryID { get; set; }
+        public int SubCategoryID { get; set; }
 
         [Display(Name = "Số lượng trong kho")]
         public int StockQuantity { get; set; } = 0;

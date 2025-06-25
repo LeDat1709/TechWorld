@@ -1,0 +1,176 @@
+﻿@model TechWorld.Models.Promotion
+@{
+    ViewData["Title"] = "Thêm mới chương trình khuyến mãi";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <h1 class="mt-4">Thêm mới chương trình khuyến mãi</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Bảng điều khiển</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Khuyến mãi</a></li>
+        <li class="breadcrumb-item active">Thêm mới</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-plus mr-1"></i>
+            Thông tin
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                @* BƯỚC 1: CHỌN LOẠI KHUYẾN MÃI *@
+                <div class="form-group">
+                    <label class="control-label font-weight-bold">Chọn loại khuyến mãi</label>
+                    <div class="pl-2">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="promotionType" id="typeProduct" value="Product" checked>
+                            <label class="form-check-label" for="typeProduct">Giảm giá theo sản phẩm</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="promotionType" id="typeVoucher" value="Voucher">
+                            <label class="form-check-label" for="typeVoucher">Voucher giảm giá (cho toàn đơn hàng)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+
+                @* BƯỚC 2: NHẬP CÁC THÔNG TIN CHUNG *@
+                <div class="form-group">
+                    <label asp-for="PromotionName" class="control-label"></label>
+                    <input asp-for="PromotionName" class="form-control" />
+                    <span asp-validation-for="PromotionName" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Description" class="control-label"></label>
+                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="PromoCode" class="control-label"></label>
+                    <input asp-for="PromoCode" class="form-control" placeholder="Bỏ trống nếu không dùng mã" />
+                    <span asp-validation-for="PromoCode" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="RankID" class="control-label"></label>
+                    <select asp-for="RankID" class="form-control" asp-items="ViewBag.Ranks">
+                        <option value="">-- Không áp dụng cho cấp độ cụ thể --</option>
+                    </select>
+                    <span asp-validation-for="RankID" class="text-danger"></span>
+                </div>
+
+                @* BƯỚC 3: NHẬP THÔNG TIN RIÊNG CHO TỪNG LOẠI *@
+
+                <!-- Các trường dành cho loại "Giảm giá theo sản phẩm" -->
+                <div id="productDiscountFields">
+                    <div class="form-group">
+                        <label asp-for="ProductID" class="control-label"></label>
+                        <select asp-for="ProductID" class="form-control" asp-items="ViewBag.Products">
+                            <option value="">-- Chọn sản phẩm --</option>
+                        </select>
+                        <span asp-validation-for="ProductID" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="DiscountPercentage" class="control-label"></label>
+                        <input asp-for="DiscountPercentage" class="form-control" type="number" step="0.01" min="0.01" max="100" />
+                        <span asp-validation-for="DiscountPercentage" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Các trường dành cho loại "Voucher" -->
+                <div id="voucherFields" style="display:none;">
+                    <div class="form-group">
+                        <label asp-for="DiscountAmount" class="control-label"></label>
+                        <input asp-for="DiscountAmount" class="form-control" type="number" min="1" />
+                        <span asp-validation-for="DiscountAmount" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="MinOrderValue" class="control-label"></label>
+                        <input asp-for="MinOrderValue" class="form-control" type="number" min="0" value="0" />
+                        <span asp-validation-for="MinOrderValue" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <hr />
+
+                @* BƯỚC 4: THIẾT LẬP THỜI GIAN VÀ TRẠNG THÁI *@
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label asp-for="StartDate" class="control-label"></label>
+                        <input asp-for="StartDate" class="form-control" type="datetime-local" />
+                        <span asp-validation-for="StartDate" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label asp-for="EndDate" class="control-label"></label>
+                        <input asp-for="EndDate" class="form-control" type="datetime-local" />
+                        <span asp-validation-for="EndDate" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label asp-for="IsActive" class="control-label"></label>
+                    <select asp-for="IsActive" class="form-control">
+                        <option value="true">Kích hoạt</option>
+                        <option value="false">Vô hiệu hóa</option>
+                    </select>
+                    <span asp-validation-for="IsActive" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-1"></i> Lưu
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left mr-1"></i> Quay lại
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            // Hàm để chuyển đổi hiển thị giữa các trường của 2 loại khuyến mãi
+            function togglePromotionFields() {
+                var promotionType = $('input[name="promotionType"]:checked').val();
+
+                if (promotionType === 'Product') {
+                    // Hiển thị phần của Product
+                    $('#productDiscountFields').show();
+                    // Kích hoạt lại input/select của Product (phòng trường hợp bị vô hiệu hóa trước đó)
+                    $('#productDiscountFields input, #productDiscountFields select').prop('disabled', false);
+
+                    // Ẩn phần của Voucher
+                    $('#voucherFields').hide();
+                    // Vô hiệu hóa input của Voucher để chúng không được gửi đi khi form submit
+                    $('#voucherFields input').prop('disabled', true);
+
+                } else { // promotionType === 'Voucher'
+                    // Ẩn phần của Product
+                    $('#productDiscountFields').hide();
+                    // Vô hiệu hóa input/select của Product
+                    $('#productDiscountFields input, #productDiscountFields select').prop('disabled', true);
+
+                    // Hiển thị phần của Voucher
+                    $('#voucherFields').show();
+                    // Kích hoạt lại input của Voucher
+                    $('#voucherFields input').prop('disabled', false);
+                }
+            }
+
+            // Gọi hàm ngay khi trang được tải để thiết lập trạng thái ban đầu
+            togglePromotionFields();
+
+            // Gắn sự kiện 'change' vào các radio button
+            // Mỗi khi người dùng chọn lại, hàm sẽ được gọi để cập nhật giao diện
+            $('input[name="promotionType"]').change(function () {
+                togglePromotionFields();
+            });
+        });
+    </script>
+}

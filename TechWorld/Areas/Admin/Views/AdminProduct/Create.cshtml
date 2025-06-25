@@ -1,0 +1,123 @@
+﻿@model TechWorld.Models.Product
+@{
+    ViewData["Title"] = "Thêm sản phẩm";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <h1 class="mt-4">Thêm sản phẩm mới</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Bảng điều khiển</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Sản phẩm</a></li>
+        <li class="breadcrumb-item active">Thêm mới</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-plus mr-1"></i>
+            Thông tin sản phẩm
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" enctype="multipart/form-data">
+                <div asp-validation-summary="All" class="text-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label asp-for="ProductName" class="control-label">Tên sản phẩm</label>
+                            <input asp-for="ProductName" class="form-control" />
+                            <span asp-validation-for="ProductName" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Description" class="control-label">Mô tả</label>
+                            <textarea asp-for="Description" class="form-control" rows="6"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Price" class="control-label">Giá (VNĐ)</label>
+                                    <input asp-for="Price" class="form-control" type="number" min="0" step="1000" />
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="StockQuantity" class="control-label">Số lượng tồn kho</label>
+                                    <input asp-for="StockQuantity" class="form-control" type="number" min="0" />
+                                    <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="SubCategoryID" class="control-label">Danh mục phụ</label>
+                            <select asp-for="SubCategoryID" class="form-control">
+                                <option value="">-- Chọn danh mục phụ --</option>
+                                @foreach (var subCategory in ViewBag.SubCategories)
+                                {
+                                    <option value="@subCategory.SubCategoryID">@subCategory.Category.CategoryName - @subCategory.SubCategoryName</option>
+                                }
+                            </select>
+                            <span asp-validation-for="SubCategoryID" class="text-danger"></span>
+                        </div>
+                        <div class="form-group form-check">
+                            <label class="form-check-label">
+                                <input class="form-check-input" asp-for="IsActive" checked /> Kích hoạt
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="control-label">Hình ảnh sản phẩm</label>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="productImages" name="productImages" multiple accept="image/*">
+                                <label class="custom-file-label" for="productImages">Chọn ảnh...</label>
+                            </div>
+                            <small class="form-text text-muted">Ảnh đầu tiên sẽ là ảnh chính.</small>
+                        </div>
+                        <div class="image-preview-container" id="imagePreviewContainer"></div>
+                    </div>
+                </div>
+                <div class="form-group mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-1"></i> Lưu
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left mr-1"></i> Quay lại
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            $('.custom-file-input').on('change', function () {
+                const fileCount = this.files.length;
+                const label = $(this).next('.custom-file-label');
+                label.html(fileCount > 1 ? `${fileCount} files selected` : this.value.split('\\').pop());
+                const previewContainer = $('#imagePreviewContainer');
+                previewContainer.empty();
+                if (this.files && this.files.length > 0) {
+                    for (let i = 0; i < this.files.length; i++) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewContainer.append(
+                                `<div class="preview-item">
+                                    <img src="${e.target.result}" alt="Preview" style="max-width: 100px; max-height: 100px; margin: 5px;" />
+                                </div>`
+                            );
+                        }
+                        reader.readAsDataURL(this.files[i]);
+                    }
+                }
+            });
+        });
+    </script>
+}
+

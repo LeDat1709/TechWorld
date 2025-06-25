@@ -1,0 +1,172 @@
+﻿@model TechWorld.Models.Product
+@{
+    ViewData["Title"] = "Chỉnh sửa sản phẩm";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <h1 class="mt-4">Chỉnh sửa sản phẩm</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Bảng điều khiển</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Sản phẩm</a></li>
+        <li class="breadcrumb-item active">Chỉnh sửa</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-edit mr-1"></i>
+            Thông tin sản phẩm
+        </div>
+        <div class="card-body">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <form asp-action="Edit" enctype="multipart/form-data">
+                <input type="hidden" asp-for="ProductID" />
+                <div asp-validation-summary="All" class="text-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label asp-for="ProductName" class="control-label">Tên sản phẩm</label>
+                            <input asp-for="ProductName" class="form-control" />
+                            <span asp-validation-for="ProductName" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Description" class="control-label">Mô tả</label>
+                            <textarea asp-for="Description" class="form-control" rows="6"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Price" class="control-label">Giá (VNĐ)</label>
+                                    <input asp-for="Price" class="form-control" type="number" min="0" step="1000" />
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="StockQuantity" class="control-label">Số lượng tồn kho</label>
+                                    <input asp-for="StockQuantity" class="form-control" type="number" min="0" />
+                                    <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="SubCategoryID" class="control-label">Danh mục phụ</label>
+                            <select asp-for="SubCategoryID" class="form-control">
+                                <option value="">-- Chọn danh mục phụ --</option>
+                                @foreach (var subCategory in ViewBag.SubCategories)
+                                {
+                                    <option value="@subCategory.SubCategoryID">
+                                        @subCategory.Category.CategoryName - @subCategory.SubCategoryName
+                                    </option>
+                                }
+                            </select>
+                            <span asp-validation-for="SubCategoryID" class="text-danger"></span>
+                        </div>
+                        <div class="form-group form-check">
+                            <label class="form-check-label">
+                                <input class="form-check-input" asp-for="IsActive" /> Kích hoạt
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="control-label">Thêm ảnh mới</label>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="newImages" name="newImages" multiple accept="image/*">
+                                <label class="custom-file-label" for="newImages">Chọn ảnh...</label>
+                            </div>
+                            <small class="form-text text-muted">Có thể chọn nhiều ảnh.</small>
+                        </div>
+                        <div class="image-preview-container" id="imagePreviewContainer"></div>
+                        <hr />
+                        <div class="form-group">
+                            <label>Ảnh hiện tại</label>
+                            @if (Model.ProductImages != null && Model.ProductImages.Any())
+                            {
+                                <div class="image-preview-container">
+                                    @foreach (var image in Model.ProductImages)
+                                    {
+                                        <div class="image-preview-item">
+                                            <img src="/images/@image.ImagePath" alt="Thumbnail" class="img-thumbnail" style="max-width: 100px;" />
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="mainImageId" id="mainImage-@image.ImageID" value="@image.ImageID" @(image.IsMainImage ? "checked" : "") />
+                                                <label class="form-check-label" for="mainImage-@image.ImageID">Chính</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" name="imagesToDelete" id="deleteImage-@image.ImageID" value="@image.ImageID" />
+                                                <label class="form-check-label" for="deleteImage-@image.ImageID">Xóa</label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">Chưa có ảnh nào.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-1"></i> Lưu
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left mr-1"></i> Quay lại
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            $('.custom-file-input').on('change', function () {
+                const fileCount = this.files.length;
+                const label = $(this).next('.custom-file-label');
+                label.html(fileCount > 1 ? `${fileCount} files selected` : this.value.split('\\').pop());
+
+                const previewContainer = $('#imagePreviewContainer');
+                previewContainer.empty();
+
+                if (this.files && this.files.length > 0) {
+                    for (let i = 0; i < this.files.length; i++) {
+                        const reader = new FileReader();
+                        const file = this.files[i];
+
+                        reader.onload = function(e) {
+                            previewContainer.append(
+                                `<div class="preview-item">
+                                    <img src="${e.target.result}" alt="Preview" class="img-thumbnail" style="max-width: 100px; max-height: 100px; margin: 5px;" />
+                                </div>`
+                            );
+                        }
+
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+        });
+    </script>
+}

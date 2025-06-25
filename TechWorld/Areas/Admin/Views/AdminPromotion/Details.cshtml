@@ -1,0 +1,134 @@
+﻿@model TechWorld.Models.Promotion
+@{
+    ViewData["Title"] = "Chi tiết chương trình khuyến mãi";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <h1 class="mt-4">Chi tiết: @Model.PromotionName</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Bảng điều khiển</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Khuyến mãi</a></li>
+        <li class="breadcrumb-item active">Chi tiết</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-info-circle mr-1"></i>
+            Thông tin chi tiết
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Tên chương trình</dt>
+                <dd class="col-sm-9">@Model.PromotionName</dd>
+
+                <dt class="col-sm-3">Mô tả</dt>
+                <dd class="col-sm-9">@Model.Description</dd>
+
+                <dt class="col-sm-3">Loại khuyến mãi</dt>
+                <dd class="col-sm-9">
+                    @if (Model.ProductID != null)
+                    {
+                        <span class="badge badge-info">Khuyến mãi Sản phẩm</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-primary">Voucher Đơn hàng</span>
+                    }
+                </dd>
+
+                <hr class="col-12" />
+
+                @if (Model.ProductID != null)
+                {
+                    // === THÔNG TIN CHO KHUYẾN MÃI SẢN PHẨM ===
+                    <dt class="col-sm-3">Sản phẩm áp dụng</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.Product != null)
+                        {
+                            <a asp-area="Admin" asp-controller="Products" asp-action="Details" asp-route-id="@Model.ProductID">@Model.Product.ProductName</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Không xác định</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-3">Phần trăm giảm</dt>
+                    <dd class="col-sm-9 text-danger font-weight-bold">@($"{Model.DiscountPercentage:G29}%")</dd>
+                }
+                else
+                {
+                    // === THÔNG TIN CHO VOUCHER ĐƠN HÀNG ===
+                    <dt class="col-sm-3">Số tiền giảm</dt>
+                    <dd class="col-sm-9 text-danger font-weight-bold">@($"{Model.DiscountAmount:N0} VND")</dd>
+
+                    <dt class="col-sm-3">Điều kiện</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.MinOrderValue.HasValue && Model.MinOrderValue > 0)
+                        {
+                            @($"Áp dụng cho đơn hàng từ {Model.MinOrderValue:N0} VND")
+                        }
+                        else
+                        {
+                            @("Áp dụng cho mọi đơn hàng")
+                        }
+                    </dd>
+                }
+
+                <hr class="col-12" />
+
+                <dt class="col-sm-3">Mã khuyến mãi (Code)</dt>
+                <dd class="col-sm-9">
+                    @if (!string.IsNullOrEmpty(Model.PromoCode))
+                    {
+                        <span class="badge badge-secondary">@Model.PromoCode</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Áp dụng tự động</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-3">Đối tượng áp dụng</dt>
+                <dd class="col-sm-9">
+                    @if (Model.Rank != null)
+                    {
+                        @("Chỉ dành cho hạng: ") <span class="badge badge-success">@Model.Rank.RankName</span>
+                    }
+                    else
+                    {
+                        @("Mọi khách hàng")
+                    }
+                </dd>
+
+                <dt class="col-sm-3">Thời gian hiệu lực</dt>
+                <dd class="col-sm-9">@($"{Model.StartDate:dd/MM/yyyy HH:mm}") - @($"{Model.EndDate:dd/MM/yyyy HH:mm}")</dd>
+
+                <dt class="col-sm-3">Trạng thái</dt>
+                <dd class="col-sm-9">
+                    @if (Model.EndDate < DateTime.Now)
+                    {
+                        <span class="badge badge-secondary">Hết hạn</span>
+                    }
+                    else if (Model.IsActive)
+                    {
+                        <span class="badge badge-success">Đang hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-danger">Đã vô hiệu hóa</span>
+                    }
+                </dd>
+            </dl>
+        </div>
+        <div class="card-footer">
+             <a asp-action="Edit" asp-route-id="@Model.PromotionID" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-1"></i> Quay lại danh sách
+            </a>
+        </div>
+    </div>
+</div>

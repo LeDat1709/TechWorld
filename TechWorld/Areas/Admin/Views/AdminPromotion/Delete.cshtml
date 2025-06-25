@@ -1,0 +1,43 @@
+﻿@model TechWorld.Models.Promotion
+@{
+    ViewData["Title"] = "Xóa chương trình khuyến mãi";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <h1 class="mt-4">Xóa chương trình khuyến mãi</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Bảng điều khiển</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Khuyến mãi</a></li>
+        <li class="breadcrumb-item active">Xóa</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-trash mr-1"></i>
+            Xác nhận xóa
+        </div>
+        <div class="card-body">
+            <h3>Bạn có chắc chắn muốn xóa chương trình khuyến mãi này?</h3>
+            <dl class="row">
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.PromotionName)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.PromotionName)</dd>
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.DiscountPercentage)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.DiscountPercentage)%</dd>
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.StartDate)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.StartDate)</dd>
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.EndDate)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.EndDate)</dd>
+            </dl>
+            <form asp-area="Admin" asp-controller="AdminPromotion" asp-action="Delete" method="post">
+                <input type="hidden" asp-for="PromotionID" />
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash mr-1"></i> Xóa
+                </button>
+                <a asp-action="Index" asp-area="Admin" asp-controller="AdminPromotion" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i> Hủy
+                </a>
+            </form>
+        </div>
+    </div>
+</div>

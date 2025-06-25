@@ -1,0 +1,36 @@
+﻿@model TechWorld.Models.SubCategory
+@{
+    ViewData["Title"] = "Thêm danh mục con";
+    Layout = "_AdminLayout";
+}
+
+<h1>Thêm danh mục con</h1>
+<form asp-action="CreateSubCategory" method="post">
+    <input type="hidden" asp-for="CategoryID" value="@ViewBag.CategoryId" />
+    <div class="form-group">
+        <label asp-for="SubCategoryName">Tên danh mục con</label>
+        <input asp-for="SubCategoryName" class="form-control" />
+        <span asp-validation-for="SubCategoryName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Description">Mô tả</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="IsActive">Trạng thái</label>
+        <select asp-for="IsActive" class="form-control">
+            <option value="true">Kích hoạt</option>
+            <option value="false">Vô hiệu</option>
+        </select>
+        <span asp-validation-for="IsActive" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

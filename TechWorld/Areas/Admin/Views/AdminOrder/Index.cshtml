@@ -1,0 +1,164 @@
+﻿@using TechWorld.Areas.Admin.Utils  
+@model PaginatedList<TechWorld.Models.Order>
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <h1 class="mt-4">Quản lý đơn hàng</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Dashboard">Bảng điều khiển</a></li>
+        <li class="breadcrumb-item active">Đơn hàng</li>
+    </ol>
+
+    @* Các thông báo TempData giữ nguyên *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-filter me-1"></i>
+            Bộ lọc và Tìm kiếm
+        </div>
+        <div class="card-body">
+            @* CẢI TIẾN: Gộp 2 form thành 1 để giữ lại giá trị lọc khi tìm kiếm và ngược lại *@
+            <form asp-action="Index" method="get">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Tìm mã đơn, tên khách hàng..." name="searchString" value="@ViewBag.CurrentSearch">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <select class="form-select" name="statusFilter">
+                                <option value="All">Tất cả trạng thái</option>
+                                @foreach (var status in ViewBag.StatusList as List<string>)
+                                {
+                                    <option value="@status" selected="@(ViewBag.CurrentStatus == status)">@status</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" type="submit"><i class="fas fa-search me-2"></i>Tìm</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-list me-1"></i>
+            Danh sách đơn hàng
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn hàng</th>
+                            <th>Khách hàng</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th style="width: 120px;" class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@item.OrderID"><strong>@item.OrderNumber</strong></a>
+                                </td>
+                                <td>@(item.User?.FullName ?? "Khách vãng lai")</td>
+                                <td>@item.TotalAmount?.ToString("N0") VNĐ</td>
+                                <td>
+                                    @* Cập nhật để dùng class của Bootstrap 5 thay vì Bootstrap 4 *@
+                                    <span class="badge bg-@GetStatusColor(item.OrderStatus)">@item.OrderStatus</span>
+                                </td>
+                                <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        @* CẬP NHẬT CÁC NÚT THAO TÁC *@
+                                        <a asp-action="Details" asp-route-id="@item.OrderID" class="btn btn-info" title="Chi tiết & Cập nhật">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        @if (item.OrderStatus != OrderStatusManager.Cancelled && item.OrderStatus != OrderStatusManager.Completed)
+                                        {
+                                            <a asp-action="Cancel" asp-route-id="@item.OrderID" class="btn btn-danger" title="Hủy đơn hàng">
+                                                <i class="fas fa-ban"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- BẮT ĐẦU: KHỐI PHÂN TRANG -->
+            @{
+                var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+                var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+            }
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @prevDisabled">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-pageNumber="@(Model.PageIndex - 1)"
+                           asp-route-searchString="@ViewBag.CurrentSearch"
+                           asp-route-statusFilter="@ViewBag.CurrentStatus">
+                            Trước
+                        </a>
+                    </li>
+                    <li class="page-item disabled"><span class="page-link">Trang @Model.PageIndex / @Model.TotalPages</span></li>
+                    <li class="page-item @nextDisabled">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-pageNumber="@(Model.PageIndex + 1)"
+                           asp-route-searchString="@ViewBag.CurrentSearch"
+                           asp-route-statusFilter="@ViewBag.CurrentStatus">
+                            Sau
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <!-- KẾT THÚC: KHỐI PHÂN TRANG -->
+
+        </div>
+    </div>
+</div>
+
+@functions {
+    // Helper function để lấy màu cho badge trạng thái
+    private string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            OrderStatusManager.PendingConfirmation => "warning",
+            OrderStatusManager.AwaitingPayment => "secondary",
+            OrderStatusManager.Confirmed => "info",
+            OrderStatusManager.Processing => "primary",
+            OrderStatusManager.Shipping => "primary",
+            OrderStatusManager.Completed => "success",
+            OrderStatusManager.Cancelled => "danger",
+            _ => "dark"
+        };
+    }
+}

@@ -1,0 +1,61 @@
+﻿@model TechWorld.Models.PaymentMethod
+@{
+    ViewData["Title"] = "Xóa phương thức thanh toán";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <h1 class="mt-4">Xóa phương thức thanh toán</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Bảng điều khiển</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Phương thức thanh toán</a></li>
+        <li class="breadcrumb-item active">Xóa</li>
+    </ol>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <i class="fas fa-exclamation-triangle mr-1"></i>
+            Xác nhận xóa
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <h5><i class="fas fa-exclamation-circle mr-1"></i> Bạn có chắc chắn muốn xóa phương thức thanh toán này?</h5>
+                <p>Thao tác này không thể hoàn tác. Các đơn hàng liên quan có thể bị ảnh hưởng.</p>
+            </div>
+
+            <dl class="row">
+                <dt class="col-sm-3">Tên phương thức</dt>
+                <dd class="col-sm-9">@Model.MethodName</dd>
+
+                <dt class="col-sm-3">Trạng thái</dt>
+                <dd class="col-sm-9">
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge badge-success">Kích hoạt</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-secondary">Không kích hoạt</span>
+                    }
+                </dd>
+            </dl>
+
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="PaymentMethodID" />
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa phương thức thanh toán này?');">
+                    <i class="fas fa-trash mr-1"></i> Xác nhận xóa
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i> Quay lại
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
