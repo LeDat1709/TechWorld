@@ -1,0 +1,170 @@
+﻿@model IEnumerable<TechWorld.Models.Promotion>
+@{
+    ViewData["Title"] = "Voucher của bạn";
+
+    var fullName = ViewBag.FullName as string ?? User.Identity.Name;
+    var email = ViewBag.Email as string ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+    var rankName = ViewBag.RankName as string ?? "Chưa có hạng";
+    var points = ViewBag.Points as int? ?? 0;
+
+    string GetTimeRemaining(DateTime endDate)
+    {
+        var timeSpan = endDate - DateTime.Now;
+        if(timeSpan.TotalDays >= 1)
+        {
+            return $"Còn {Math.Floor(timeSpan.TotalDays)} ngày {timeSpan.Hours} giờ";
+        }
+        if(timeSpan.TotalHours >= 1)
+        {
+            return $"Còn {Math.Floor(timeSpan.TotalHours)} giờ {timeSpan.Minutes} phút";
+        }
+        if (timeSpan.TotalMinutes >= 1)
+        {
+            return $"Còn {Math.Floor(timeSpan.TotalMinutes)} phút";
+        }
+
+        return "Sắp hết hạn";
+    }
+}
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="avatar-wrapper me-3">
+                            <div class="comment-avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 20px;">
+                                @(fullName != null && fullName.Length > 0 ? fullName.Substring(0, 1).ToUpper() : "U")
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">@fullName</h5>
+                            <p class="text-muted mb-0 small">@email</p>
+                        </div>
+                    </div>
+
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="alert alert-info mt-3">
+                            <strong>Hạng:</strong> @rankName <br />
+                            <strong>Điểm thưởng:</strong> @points điểm
+                        </div>
+                    }
+
+                    <div class="list-group list-group-flush">
+                        <a asp-controller="Account" asp-action="Profile" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user me-2"></i> Thông tin tài khoản
+                        </a>
+                        <a asp-controller="Order" asp-action="History" class="list-group-item list-group-item-action">
+                            <i class="fas fa-shopping-bag me-2"></i> Lịch sử đơn hàng
+                        </a>
+                        <a asp-controller="Account" asp-action="ChangePassword" class="list-group-item list-group-item-action">
+                            <i class="fas fa-lock me-2"></i> Đổi mật khẩu
+                        </a>
+                        <a asp-controller="Account" asp-action="Wishlist" class="list-group-item list-group-item-action">
+                            <i class="fas fa-heart me-2"></i> Sản phẩm yêu thích
+                        </a>
+                        <a asp-controller="Account" asp-action="Reviews" class="list-group-item list-group-item-action">
+                            <i class="fas fa-star me-2"></i> Đánh giá của tôi
+                        </a>
+                        <a asp-controller="Account" asp-action="Voucher" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tags me-2"></i> Voucher
+                        </a>
+                        <a asp-controller="Account" asp-action="TwoFactorSettings" class="btn btn-outline-primary mt-3">
+                            <i class="fas fa-shield-alt me-2"></i> Cài đặt xác thực hai lớp
+                        </a>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Admin" asp-action="Index" class="list-group-item list-group-item-action">
+                                <i class="fas fa-cogs me-2"></i> Chuyển đến trang Admin
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h4 class="card-title mb-0">Voucher của bạn</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if(!Model.Any())
+                    {
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-ticket-alt fa-3x mb-3"></i>
+                            <p class="mb-0">Bạn hiện không có voucher nào.</p>
+                            <p><a asp-asp-controller="Home" asp-action="Index">Xem sản phẩm</a> để nhận thêm ưu đãi!</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="voucher-list-detail-container p-3 border rounded shadow-sm">
+                            <h5 class="mb-3 text-secondary">Danh sách voucher hiện có</h5>
+                            <div class="row row-cols-1 row-cols-md-2 g-4">
+                                @foreach (var voucher in Model)
+                                {
+                                    <div class="col">
+                                        <div class="card h-100 voucher-card">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-primary">@voucher.PromotionName</h5>
+                                                @if(!string.IsNullOrEmpty(voucher.PromoCode))
+                                                {
+                                                    <p class="card-text">
+                                                        <strong>Mã:</strong>
+                                                        <span class="badge bg-success">@voucher.PromoCode</span>
+                                                    </p>
+                                                }
+                                                <p class="card-text">@Html.Raw(voucher.Description?.Replace("\n", "<br />"))</p>
+
+                                                @if(voucher.DiscountAmount > 0)
+                                                {
+                                                    <p class="card-text"><strong>Giảm:</strong> @voucher.DiscountAmount.Value.ToString("N0") VNĐ</p>
+                                                }
+                                                @if (voucher.MinOrderValue > 0)
+                                                {
+                                                    <p class="card-text"><strong>Đơn tối thiếu:</strong> @voucher.MinOrderValue.Value.ToString("N0") VNĐ</p>
+                                                }
+                                            </div>
+                                            <div class="card-footer bg-transparent border-top-0">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i> @GetTimeRemaining(voucher.EndDate)
+                                                    (HSD: @voucher.EndDate.ToString("dd/MM/yyyy HH:mm"))
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,131 @@
+﻿@model TechWorld.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng ký";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <h1 class="h3 mb-3 fw-normal">Đăng ký tài khoản</h1>
+                        <p class="text-muted">Tạo tài khoản để mua sắm và theo dõi đơn hàng dễ dàng hơn</p>
+                    </div>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            <div asp-validation-summary="All" class="list-unstyled mb-0"></div>
+                        </div>
+                    }
+
+                    <form asp-controller="Account" asp-action="Register" method="post" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="UserName" class="form-control" placeholder="Tên đăng nhập" required>
+                                    <label asp-for="UserName"></label>
+                                    <span asp-validation-for="UserName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="FullName" class="form-control" placeholder="Họ tên" required>
+                                    <label asp-for="FullName"></label>
+                                    <span asp-validation-for="FullName" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Email" class="form-control" placeholder="Email" required>
+                            <label asp-for="Email"></label>
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Phone" class="form-control" placeholder="Số điện thoại" required>
+                            <label asp-for="Phone"></label>
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Password" type="password" class="form-control" placeholder="Mật khẩu" required>
+                                    <label asp-for="Password"></label>
+                                    <span asp-validation-for="Password" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Xác nhận mật khẩu" required>
+                                    <label asp-for="ConfirmPassword"></label>
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input asp-for="AgreeTerms" class="form-check-input" type="checkbox" required>
+                            <label asp-for="AgreeTerms" class="form-check-label">
+                                Tôi đồng ý với <a href="#" class="text-decoration-none">Điều khoản dịch vụ</a> và <a href="#" class="text-decoration-none">Chính sách bảo mật</a>
+                            </label>
+                            <span asp-validation-for="AgreeTerms" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid mb-4">
+                            <button class="btn btn-primary btn-lg" type="submit">
+                                <i class="fas fa-user-plus me-2"></i>Đăng ký
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="border-top pt-3 text-center">
+                        <p>Bạn đã có tài khoản? <a asp-controller="Account" asp-action="Login" class="text-decoration-none fw-bold">Đăng nhập</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        (function () {
+            'use strict'
+
+            var forms = document.querySelectorAll('.needs-validation')
+
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+        // Đảm bảo checkbox điều khoản được kiểm tra
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     const form = document.querySelector('form');
+        //     const agreeTermsCheckbox = document.getElementById('AgreeTerms');
+
+        //     form.addEventListener('submit', function(e) {
+        //         if (!agreeTermsCheckbox.checked) {
+        //             e.preventDefault();
+        //             alert('Bạn phải đồng ý với điều khoản dịch vụ để đăng ký.');
+        //         }
+        //     });
+        // });
+    </script>
+}

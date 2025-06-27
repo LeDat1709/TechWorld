@@ -1,0 +1,49 @@
+﻿@model TechWorld.Models.Verify2FAViewModel
+@{
+    ViewData["Title"] = "Xác minh 2FA";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <h1 class="h3 mb-3 fw-normal">Xác minh hai lớp</h1>
+                        <p class="text-muted">Vui lòng nhập mã OTP đã được gửi đến email của bạn.</p>
+                    </div>
+
+                    <form asp-controller="Account" asp-action="Verify2FA" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="Email" asp-for="Email" placeholder="Email" readonly required>
+                            <label for="Email">Email</label>
+                            <span asp-validation-for="Email" class="invalid-feedback"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="OTP" asp-for="OTP" placeholder="Mã OTP" required>
+                            <label for="OTP">Mã OTP</label>
+                            <span asp-validation-for="OTP" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid mb-4">
+                            <button class="btn btn-primary btn-lg" type="submit">
+                                <i class="fas fa-check me-2"></i>Xác minh
+                            </button>
+                        </div>
+
+                        <div class="text-center">
+                            <p class="text-muted small">Không nhận được mã? <a asp-controller="Account" asp-action="Login">Hãy thử đăng nhập lại</a> để nhận mã mới.</p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,144 @@
+﻿@model TechWorld.Models.UserAddress
+
+@{
+    ViewData["Title"] = "Thêm địa chỉ mới";
+    bool selectMode = (bool)(ViewBag.SelectMode ?? false);
+}
+
+<div class="container py-4">
+    <h1 class="mb-4">Thêm địa chỉ mới</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="selectMode" value="@selectMode.ToString().ToLower()" />
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Address" class="form-label"></label>
+                    <input asp-for="Address" class="form-control" placeholder="Ví dụ: 123 Nguyễn Văn Linh" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label asp-for="ProvinceID" class="form-label">Tỉnh/Thành phố</label>
+                        <select asp-for="ProvinceID" class="form-select" id="provinceSelect"
+                                asp-items="@(new SelectList(ViewBag.Provinces, "ProvinceID", "ProvinceName"))">
+                            <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                        </select>
+                        <span asp-validation-for="ProvinceID" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="DistrictID" class="form-label">Quận/Huyện</label>
+                        <select asp-for="DistrictID" class="form-select" id="districtSelect">
+                            <option value="">-- Chọn Quận/Huyện --</option>
+                        </select>
+                        <span asp-validation-for="DistrictID" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="WardID" class="form-label">Phường/Xã</label>
+                        <select asp-for="WardID" class="form-select" id="wardSelect">
+                            <option value="">-- Chọn Phường/Xã --</option>
+                        </select>
+                        <span asp-validation-for="WardID" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PhoneNumber" class="form-label"></label>
+                    <input asp-for="PhoneNumber" class="form-control" placeholder="Số điện thoại liên hệ" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" asp-for="IsDefault" />
+                    <label class="form-check-label" asp-for="IsDefault"></label>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" asp-route-selectMode="@selectMode" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Thêm địa chỉ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const provinceSelect = document.getElementById('provinceSelect');
+            const districtSelect = document.getElementById('districtSelect');
+            const wardSelect = document.getElementById('wardSelect');
+
+            async function loadDistricts(provinceId) {
+                if (provinceId && provinceId !== "") {
+                    districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+                    wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+
+                    try {
+                        const response = await fetch(`/Address/GetDistricts?provinceId=${provinceId}`);
+                        if (!response.ok) {
+                            console.error('Error fetching districts:', response.statusText);
+                            return;
+                        }
+                        const districts = await response.json();
+                        districts.forEach(d => {
+                            const option = document.createElement('option');
+                            option.value = d.districtID;
+                            option.textContent = d.districtName;
+                            districtSelect.appendChild(option);
+                        });
+                    } catch (error) {
+                        console.error('Error loading districts:', error);
+                    }
+                } else {
+                    districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+                    wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+                }
+            }
+
+            async function loadWards(districtId) {
+                if (districtId && districtId !== "") {
+                    wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+
+                    try {
+                        const response = await fetch(`/Address/GetWards?districtId=${districtId}`);
+                        if (!response.ok) {
+                            console.error('Error fetching wards:', response.statusText);
+                            return;
+                        }
+                        const wards = await response.json();
+                        wards.forEach(w => {
+                            const option = document.createElement('option');
+                            option.value = w.wardID;
+                            option.textContent = w.wardName;
+                            wardSelect.appendChild(option);
+                        });
+                    } catch (error) {
+                        console.error('Error loading wards:', error);
+                    }
+                } else {
+                    wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+                }
+            }
+
+            provinceSelect.addEventListener('change', function () {
+                loadDistricts(this.value);
+            });
+
+            districtSelect.addEventListener('change', function () {
+                loadWards(this.value);
+            });
+        });
+    </script>
+}

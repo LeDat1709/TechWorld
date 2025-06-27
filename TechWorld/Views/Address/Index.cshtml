@@ -1,0 +1,174 @@
+﻿@model IEnumerable<TechWorld.Models.UserAddress>
+
+@{
+    ViewData["Title"] = "Sổ địa chỉ";
+    // Lấy giá trị selectMode từ ViewBag. True nếu trang được mở để chọn địa chỉ, false nếu là trang quản lý thông thường.
+    bool selectMode = (bool)ViewBag.SelectMode;
+}
+
+<div class="container py-4">
+    <h1 class="mb-4">Sổ địa chỉ của bạn @(selectMode ? " (Chọn địa chỉ)" : "")</h1>
+
+    @* @if (TempData["SuccessMessage"] != null) *@
+    @* { *@
+    @*     <div class="alert alert-success alert-dismissible fade show" role="alert"> *@
+    @*         @TempData["SuccessMessage"] *@
+    @*         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> *@
+    @*     </div> *@
+    @* } *@
+    @* @if (TempData["ErrorMessage"] != null) *@
+    @* { *@
+    @*     <div class="alert alert-danger alert-dismissible fade show" role="alert"> *@
+    @*         @TempData["ErrorMessage"] *@
+    @*         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> *@
+    @*     </div> *@
+    @* } *@
+
+    <p>
+        @if (selectMode)
+        {
+            <a asp-action="Create" asp-route-selectMode="true" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Thêm địa chỉ mới
+            </a>
+        }
+        else
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Thêm địa chỉ mới
+            </a>
+        }
+    </p>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            Bạn chưa có địa chỉ nào được lưu. Vui lòng thêm một địa chỉ mới.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 @(item.IsDefault ? "border-primary shadow-sm" : "")">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title d-flex justify-content-between align-items-center">
+                                Địa chỉ
+                                @if (item.IsDefault)
+                                {
+                                    <span class="badge bg-primary">Mặc định</span>
+                                }
+                            </h5>
+                            <p class="card-text flex-grow-1">
+                                <strong>Họ tên:</strong> @(item.User?.FullName ?? "N/A") <br />
+                                <strong>Số điện thoại:</strong> @item.PhoneNumber <br />
+                                <strong>Địa chỉ:</strong> @item.FullAddressDisplay
+                            </p>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                @if (selectMode)
+                                {
+                                    <!-- Nút chọn địa chỉ -->
+                                    <button type="button" class="btn btn-sm btn-success select-address-btn"
+                                            data-address-id="@item.UserAddressID"
+                                            data-full-address-display="@item.FullAddressDisplay"
+                                            data-address="@item.Address"
+                                            data-phone-number="@item.PhoneNumber"
+                                            data-province-id="@item.ProvinceID"
+                                            data-district-id="@item.DistrictID"
+                                            data-ward-id="@item.WardID">
+                                        <i class="fas fa-check-circle"></i> Chọn
+                                    </button>
+
+                                    <!-- Các nút quản lý trong chế độ chọn -->
+                                    <a asp-action="Edit" asp-route-id="@item.UserAddressID" asp-route-selectMode="true"
+                                       class="btn btn-sm btn-info">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </a>
+
+                                    @if (!item.IsDefault)
+                                    {
+                                        <form asp-action="SetDefault" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.UserAddressID" />
+                                            <input type="hidden" name="selectMode" value="true" />
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-star"></i> Đặt mặc định
+                                            </button>
+                                        </form>
+                                    }
+
+                                    <form asp-action="Delete" asp-route-id="@item.UserAddressID" method="post" class="d-inline"
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="selectMode" value="true" />
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Xóa
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <!-- Chế độ quản lý thông thường -->
+                                    <a asp-action="Edit" asp-route-id="@item.UserAddressID" class="btn btn-sm btn-info">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </a>
+
+                                    @if (!item.IsDefault)
+                                    {
+                                        <form asp-action="SetDefault" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.UserAddressID" />
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-star"></i> Đặt làm mặc định
+                                            </button>
+                                        </form>
+                                    }
+
+                                    <form asp-action="Delete" asp-route-id="@item.UserAddressID" method="post" class="d-inline"
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Xóa
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Key này phải khớp với key trong Checkout.cshtml
+        const SELECTED_ADDRESS_LS_KEY = 'SelectedUserAddress';
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Lắng nghe sự kiện click trên tất cả các nút có class 'select-address-btn'
+            const selectAddressButtons = document.querySelectorAll('.select-address-btn');
+
+            selectAddressButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Lấy dữ liệu từ các thuộc tính data-* của nút
+                    const addressData = {
+                        userAddressID: this.dataset.addressId,
+                        fullAddressDisplay: this.dataset.fullAddressDisplay,
+                        address: this.dataset.address,
+                        phoneNumber: this.dataset.phoneNumber,
+                        provinceID: this.dataset.provinceId,
+                        districtID: this.dataset.districtId,
+                        wardID: this.dataset.wardId
+                    };
+                    // Lưu dữ liệu vào localStorage để trang Checkout có thể đọc
+                    localStorage.setItem(SELECTED_ADDRESS_LS_KEY, JSON.stringify(addressData));
+                    // Đóng cửa sổ/tab hiện tại
+                    window.close();
+                });
+            });
+        });
+    </script>
+}

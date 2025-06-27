@@ -1,0 +1,493 @@
+﻿@model TechWorld.Models.Product
+@{
+    ViewData["Title"] = Model.ProductName;
+    var now = DateTime.Now;
+
+    var rankDiscountPercentage = ViewBag.RankDiscountPercentage as decimal? ?? 0m;
+
+    decimal productSpecificDiscountPercentage = 0m;
+    var promo = Model.Promotions?.FirstOrDefault(p => p.IsActive && p.StartDate <= now && p.EndDate >= now);
+    if (promo != null)
+    {
+        productSpecificDiscountPercentage = promo.DiscountPercentage;
+    }
+
+    decimal effectiveDiscountPercentageForMainProduct = Math.Max(productSpecificDiscountPercentage, rankDiscountPercentage);
+
+    decimal finalDisplayedPriceForMainProduct = Model.Price * (1 - effectiveDiscountPercentageForMainProduct / 100m);
+
+    decimal averageRating = 0;
+    int reviewsCount = 0;
+    if (Model.Reviews != null && Model.Reviews.Any())
+    {
+        reviewsCount = Model.Reviews.Count;
+        averageRating = (decimal)Model.Reviews.Average(r => r.Rating);
+    }
+}
+
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Home" asp-action="Index" asp-route-categoryId="@Model.SubCategory?.CategoryID">
+                    @Model.SubCategory?.Category?.CategoryName
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Home" asp-action="Index" asp-route-subcategoryId="@Model.SubCategoryID">
+                    @Model.SubCategory?.SubCategoryName
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.ProductName</li>
+        </ol>
+    </nav>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            <div class="row">
+                <!-- Product Images -->
+                <div class="col-md-5 mb-4">
+                    @{
+                        var allImages = Model.ProductImages?.OrderBy(i => i.IsMainImage == false).ThenBy(i => i.ImageID).ToList() ?? new List<ProductImage>();
+                        var mainImageObject = allImages.FirstOrDefault(i => i.IsMainImage) ?? allImages.FirstOrDefault();
+                        var mainImagePath = mainImageObject?.ImagePath ?? "/images/no-image.jpg";
+                    }
+                    <div class="product-main-image-container mb-3 position-relative">
+                        <img id="mainProductImage" src="/images/@mainImagePath" alt="@Model.ProductName" class="img-fluid rounded">
+                    </div>
+                    @if (Model.ProductImages?.Count > 1)
+                    {
+                        <div class="product-thumbnails d-flex flex-wrap justify-content-center">
+                            @foreach (var image in allImages)
+                            {
+                                <div class="thumbnail-item me-2 mb-2 @(image.ImagePath == mainImagePath ? "active" : "")">
+                                    <img src="/images/@image.ImagePath" alt="@Model.ProductName" class="img-thumbnail"
+                                         data-full-image="/images/@image.ImagePath">
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- Product Info -->
+                <div class="col-md-7">
+                    <h1 class="h2 mb-3">@Model.ProductName</h1>
+
+                    <div class="mb-3">
+                        <span class="badge bg-primary">@Model.SubCategory?.Category?.CategoryName</span>
+                        <span class="badge bg-secondary">@Model.SubCategory?.SubCategoryName</span>
+                    </div>
+
+                    <div class="product-price fs-3 fw-bold mb-4">
+                        @if (effectiveDiscountPercentageForMainProduct > 0)
+                        {
+                            <span class="text-muted"><del>@string.Format("{0:N0}", Model.Price) VNĐ</del></span>
+                            <span class="text-danger ms-2">@string.Format("{0:N0}", finalDisplayedPriceForMainProduct) VNĐ</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">@string.Format("{0:N0}", Model.Price) VNĐ</span>
+                        }
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Bảo hành chính hãng 12 tháng</p>
+                        <p class="mb-2"><i class="fas fa-truck text-primary me-2"></i> Giao hàng miễn phí toàn quốc</p>
+                        <p class="mb-2"><i class="fas fa-exchange-alt text-warning me-2"></i> Đổi trả trong 7 ngày</p>
+                    </div>
+
+                    <form asp-controller="Cart" asp-action="AddToCart" method="post" class="mb-4">
+                        <input type="hidden" name="productId" value="@Model.ProductID" />
+                        <div class="row g-3 align-items-center">
+                            <div class="col-auto">
+                                <label for="quantity" class="col-form-label">Số lượng:</label>
+                            </div>
+                            <div class="col-auto">
+                                <input type="number" id="quantity" name="quantity" class="form-control" value="1" min="1" max="@Model.StockQuantity">
+                            </div>
+                            <div class="col-auto">
+                                <span class="form-text">
+                                    @(Model.StockQuantity > 0 ? $"Còn {Model.StockQuantity} sản phẩm" : "Hết hàng")
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary btn-lg me-2" @(Model.StockQuantity <= 0 ? "disabled" : "")>
+                                <i class="fas fa-shopping-cart me-2"></i>Thêm vào giỏ
+                            </button>
+                            
+                        </div>
+                    </form>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        // Lấy trạng thái từ ViewBag đã được set trong ProductController
+                        var isFavorite = ViewBag.IsFavorite as bool? ?? false;
+
+                        // Form bây giờ trỏ đến action "Toggle" trong WishlistController
+                        <form asp-controller="Wishlist" asp-action="Toggle" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productId" value="@Model.ProductID" />
+                            <button type="submit" class="btn btn-lg @(isFavorite ? "btn-danger" : "btn-outline-danger")">
+                                <i class="fas fa-heart me-2"></i>
+                                @(isFavorite ? "Đã yêu thích" : "Yêu thích")
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        // Cải thiện link cho khách, đảm bảo họ quay lại đúng trang sau khi đăng nhập
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Product", new { id = Model.ProductID })" class="btn btn-lg btn-outline-danger">
+                            <i class="fas fa-heart me-2"></i> Yêu thích
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Description -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description"
+                            type="button" role="tab" aria-controls="description" aria-selected="true">
+                        Mô tả sản phẩm
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews"
+                            type="button" role="tab" aria-controls="reviews" aria-selected="false">
+                        Đánh giá (@reviewsCount)
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="productTabsContent">
+                <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="product-description">
+                            @Html.Raw(Model.Description)
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Chưa có mô tả cho sản phẩm này.</p>
+                    }
+                </div>
+                <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                    @if (reviewsCount > 0)
+                    {
+                        <div class="reviews-overview mb-4 p-3 bg-light rounded">
+                            <h4 class="mb-3">Tổng quan đánh giá</h4>
+                            <div class="d-flex align-items-center">
+                                <div class="average-rating-score fs-2 fw-bold me-3">
+                                    @averageRating.ToString("0.0")<span class="fs-5 text-muted">/5</span>
+                                </div>
+                                <div class="average-rating-stars me-3">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= averageRating) // Sao đầy
+                                        {
+                                            <i class="fas fa-star text-warning"></i>
+                                        }
+                                        else if (i - 0.5m <= averageRating) // Nửa sao
+                                        {
+                                            <i class="fas fa-star-half-alt text-warning"></i>
+                                        }
+                                        else // Sao rỗng
+                                        {
+                                            <i class="far fa-star text-warning"></i>
+                                        }
+                                    }
+                                </div>
+                                <div class="total-reviews text-muted">
+                                    (@reviewsCount đánh giá)
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.Reviews != null && Model.Reviews.Any())
+                    {
+                        <div class="reviews-list">
+                            @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedAt))
+                            {
+                                <div class="review-item border-bottom pb-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong>@review.User?.FullName</strong>
+                                            <div class="text-muted small">@review.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                        </div>
+                                        <div class="rating">
+                                            @* --- THAY ĐỔI HIỂN THỊ SAO CỦA ĐÁNH GIÁ CŨ --- *@
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="@(i <= review.Rating ? "fas" : "far") fa-star text-warning"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                    <p>@review.Comment</p>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Chưa có đánh giá nào cho sản phẩm này.</p>
+                    }
+
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="add-review mt-4">
+                            <h5>Thêm đánh giá của bạn</h5>
+                            <form asp-controller="Product" asp-action="AddReview" method="post">
+                                <input type="hidden" name="productId" value="@Model.ProductID" />
+
+                                <div class="mb-3">
+                                    <label class="form-label">Đánh giá:</label>
+                                    <div class="rating-input">
+                                        @for (int i = 5; i >= 1; i--)
+                                        {
+                                            <input type="radio" id="star-@i" name="rating" value="@i" required />
+                                            <label for="star-@i" title="@i sao"><i class="fas fa-star"></i></label>
+                                        }
+                                    </div>
+                                    <span class="text-danger" data-valmsg-for="rating" data-valmsg-replace="true"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="comment" class="form-label">Bình luận:</label>
+                                    <textarea class="form-control" id="comment" name="comment" rows="3" required></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Product", new { id = Model.ProductID })">
+                                Đăng nhập
+                            </a> để thêm đánh giá của bạn.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Related Products -->
+    @if (ViewBag.RelatedProducts != null && ((IEnumerable<TechWorld.Models.Product>)ViewBag.RelatedProducts).Any())
+    {
+        <div class="card">
+            <div class="card-header bg-white">
+                <h3 class="mb-0 fs-5">Sản phẩm liên quan</h3>
+            </div>
+            <div class="card-body">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                    @foreach (var relatedProduct in (IEnumerable<TechWorld.Models.Product>)ViewBag.RelatedProducts)
+                    {
+                        decimal related_productSpecificDiscount = 0m; // Đổi tên
+                        var activePromotions = ViewBag.ActivePromotions as List<Promotion> ?? new List<Promotion>();
+                        var related_promo = activePromotions.FirstOrDefault(p => p.ProductID == relatedProduct.ProductID); // Đổi tên
+
+                        if (related_promo != null)
+                        {
+                            related_productSpecificDiscount = related_promo.DiscountPercentage; // Sử dụng tên mới
+                        }
+
+                        decimal related_effectiveDiscount; // Đổi tên
+                        if (User.Identity.IsAuthenticated)
+                        {
+                            // Sử dụng lại biến rankDiscountPercentage đã khai báo ở scope ngoài
+                            related_effectiveDiscount = Math.Max(related_productSpecificDiscount, rankDiscountPercentage);
+                        }
+                        else
+                        {
+                            related_effectiveDiscount = related_productSpecificDiscount;
+                        }
+
+                        decimal related_finalPrice = relatedProduct.Price * (1 - related_effectiveDiscount / 100m); // Đổi tên
+
+                        <div class="col">
+                            @* --- ÁP DỤNG MẪU CARD SẢN PHẨM MỚI --- *@
+                            <div class="card product-card h-100 position-relative">
+                                <a asp-controller="Product" asp-action="Details" asp-route-id="@relatedProduct.ProductID" class="product-image-link">
+                                    <div class="product-image-container">
+                                        @{
+                                            var imagePath = relatedProduct.ProductImages?.FirstOrDefault(i => i.IsMainImage)?.ImagePath
+                                            ?? relatedProduct.ProductImages?.FirstOrDefault()?.ImagePath;
+                                            var imageUrl = !string.IsNullOrEmpty(imagePath) ? $"/images/{imagePath.TrimStart('/')}" : "/images/placeholder.png";
+                                        }
+                                        <img src="@imageUrl" alt="@relatedProduct.ProductName" class="card-img-top img-fluid product-img-custom">
+                                    </div>
+                                </a>
+                                <div class="card-body d-flex flex-column ProductCard_cardInfo">
+                                    <p class="product-label-loan mb-0"><span title="Trả góp 0%">Trả góp 0%</span></p>
+
+                                    <div class="product-price-block">
+                                        @if (related_effectiveDiscount > 0)
+                                        {
+                                            <p class="price-old-discount mb-0">
+                                                <span class="price-old">@string.Format("{0:N0}", relatedProduct.Price) VNĐ</span>
+                                                <span class="price-discount-percent">-@related_effectiveDiscount.ToString("0")%</span>
+                                            </p>
+                                            <p class="price-current mb-0">@string.Format("{0:N0}", related_finalPrice) VNĐ</p>
+                                        }
+                                        else
+                                        {
+                                            <p class="price-current mb-0">@string.Format("{0:N0}", relatedProduct.Price) VNĐ</p>
+                                        }
+                                    </div>
+
+                                    <h3 class="product-title-text mt-auto">
+                                        <a asp-controller="Product" asp-action="Details" asp-route-id="@relatedProduct.ProductID" class="text-decoration-none text-dark">
+                                            @relatedProduct.ProductName
+                                        </a>
+                                    </h3>
+
+                                    @* Thêm nút "Thêm vào giỏ" ở đây để thay thế form cũ *@
+                                    <form asp-controller="Cart" asp-action="AddToCart" method="post" class="mt-2">
+                                        <input type="hidden" name="productId" value="@relatedProduct.ProductID" />
+                                        <input type="hidden" name="quantity" value="1" />
+                                        <button type="submit" class="btn btn-sm btn-outline-primary w-100 add-to-cart" @(relatedProduct.StockQuantity <= 0 ? "disabled" : "")>
+                                            <i class="fas fa-shopping-cart me-1"></i> Thêm vào giỏ
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const mainProductImage = document.getElementById('mainProductImage');
+            const thumbnailItems = document.querySelectorAll('.thumbnail-item'); // Select the div with thumbnail-item class
+
+            if (mainProductImage && thumbnailItems.length > 0) {
+                // Function to update the main image and active thumbnail with fade effect
+                function showImage(selectedImgElement) {
+                    // Start fade-out effect
+                    mainProductImage.classList.add('fade-out');
+
+                    // After the fade-out transition, change the image source and then fade in
+                    // The timeout duration should match the CSS transition duration (e.g., 200ms)
+                    setTimeout(() => {
+                        mainProductImage.src = selectedImgElement.dataset.fullImage;
+                        mainProductImage.classList.remove('fade-out'); // Remove to fade back in
+                    }, 200); // 200ms matches the CSS transition: opacity 0.2s
+
+                    // Update active class on thumbnails immediately
+                    thumbnailItems.forEach(item => item.classList.remove('active'));
+                    // Add 'active' class to the parent of the currently selected thumbnail image
+                    selectedImgElement.closest('.thumbnail-item').classList.add('active');
+                }
+
+                // Add click listeners for thumbnails
+                thumbnailItems.forEach(item => {
+                    const thumbnailImg = item.querySelector('img');
+                    if (thumbnailImg) {
+                        item.addEventListener('click', function () {
+                            showImage(thumbnailImg); // Call showImage with the actual img element
+                        });
+                    }
+                });
+            }
+
+            // Rating stars functionality
+            const ratingInputs = document.querySelectorAll('.rating-input input');
+            const ratingLabels = document.querySelectorAll('.rating-input label');
+
+            ratingInputs.forEach(function (input) {
+                input.addEventListener('change', function () {
+                    // Update stars appearance when rating is selected
+                    const rating = this.value;
+                    ratingLabels.forEach(function (label, i) {
+                        const star = label.querySelector('i');
+                        // Ngôi sao được tô màu từ phải sang trái (index i) nếu index >= 5-rating
+                        if (i >= (5 - rating)) {
+                            star.classList.remove('far');
+                            star.classList.add('fas', 'text-warning');
+                        } else {
+                            star.classList.remove('fas', 'text-warning');
+                            star.classList.add('far');
+                        }
+                    });
+                });
+            });
+
+            // Hover effect for rating stars
+            ratingLabels.forEach(function (label) {
+                label.addEventListener('mouseenter', function () {
+                    // Xác định vị trí của ngôi sao đang hover (từ 0 đến 4)
+                    const position = 5 - parseInt(this.getAttribute('for').replace('star', ''));
+
+                    // Tô màu các ngôi sao từ vị trí hover trở về sau (từ phải sang trái)
+                    ratingLabels.forEach(function (l, i) {
+                        const star = l.querySelector('i');
+                        if (i >= position) {
+                            star.classList.remove('far');
+                            star.classList.add('fas', 'text-warning');
+                        } else {
+                            star.classList.remove('fas', 'text-warning');
+                            star.classList.add('far'); // Đảm bảo các sao trước đó rỗng
+                        }
+                    });
+                });
+
+                label.addEventListener('mouseleave', function () {
+                    const checkedInput = document.querySelector('.rating-input input:checked');
+                    if (checkedInput) {
+                        // Nếu đã có rating được chọn, khôi phục trạng thái đó
+                        const rating = checkedInput.value;
+                        ratingLabels.forEach(function (l, i) {
+                            const star = l.querySelector('i');
+                            if (i >= (5 - rating)) {
+                                star.classList.remove('far');
+                                star.classList.add('fas', 'text-warning');
+                            } else {
+                                star.classList.remove('fas', 'text-warning');
+                                star.classList.add('far');
+                            }
+                        });
+                    } else {
+                        // Nếu chưa có rating nào được chọn, reset tất cả sao về trạng thái rỗng
+                        ratingLabels.forEach(function (l) {
+                            const star = l.querySelector('i');
+                            star.classList.remove('fas', 'text-warning');
+                            star.classList.add('far');
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

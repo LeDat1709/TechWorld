@@ -1,0 +1,45 @@
+﻿@model TechWorld.Models.ViewModels.VerifyOTPViewModel
+@{
+    ViewData["Title"] = "Xác minh OTP";
+}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <h1 class="h3 mb-3 fw-normal">Xác minh OTP</h1>
+                        <p class="text-muted">Nhập mã OTP được gửi đến email của bạn</p>
+                    </div>
+
+                    <form asp-controller="Account" asp-action="VerifyOTP" method="post" class="needs-validation" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                        <input type="hidden" asp-for="Email" />
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="OTP" type="text" class="form-control" placeholder="Mã OTP" maxlength="6" autofocus />
+                            <label asp-for="OTP"></label>
+                            <span asp-validation-for="OTP" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid mb-4">
+                            <button class="btn btn-primary btn-lg" type="submit">
+                                <i class="fas fa-check-circle me-2"></i>Xác minh
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center">
+                        <p>Không nhận được mã? <a asp-controller="Account" asp-action="ForgotPassword" class="text-decoration-none">Gửi lại</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

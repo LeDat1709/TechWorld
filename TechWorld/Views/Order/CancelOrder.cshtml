@@ -1,0 +1,48 @@
+﻿@model TechWorld.Models.Order
+@{
+    ViewData["Title"] = "Hủy đơn hàng";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h1 class="h4 mb-0">Hủy đơn hàng #@Model.OrderNumber</h1>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Lưu ý:</strong> Bạn đang yêu cầu hủy đơn hàng. Hành động này không thể hoàn tác sau khi xác nhận.
+                    </div>
+
+                    <div class="order-summary mb-4">
+                        <h5>Thông tin đơn hàng</h5>
+                        <p class="mb-1"><strong>Mã đơn hàng:</strong> #@Model.OrderNumber</p>
+                        <p class="mb-1"><strong>Ngày đặt hàng:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                        <p class="mb-1"><strong>Tổng tiền:</strong> @string.Format("{0:N0}", Model.TotalAmount) ₫</p>
+                        <p class="mb-1"><strong>Trạng thái:</strong> @Model.OrderStatus</p>
+                    </div>
+
+                    <form asp-action="CancelOrder" method="post">
+                        <input type="hidden" name="id" value="@Model.OrderID" />
+
+                        <div class="mb-3">
+                            <label for="cancelReason" class="form-label">Lý do hủy đơn hàng</label>
+                            <textarea id="cancelReason" name="cancelReason" class="form-control" rows="3" placeholder="Vui lòng cho chúng tôi biết lý do bạn muốn hủy đơn hàng"></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="OrderDetails" asp-route-id="@Model.OrderID" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times-circle me-2"></i>Xác nhận hủy đơn hàng
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

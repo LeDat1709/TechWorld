@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TechWorld.Models
 {
-    public class WishListItems
+    [Table("WishListItems")]
+    public class WishList
     {
-        public class WishList
-        {
             [Key]
             public int WishlistItemID { get; set; }
 
@@ -18,6 +18,6 @@ namespace TechWorld.Models
             public DateTime? AddedAt { get; set; }
 
             public Product Product { get; set; }
-        }
+        
     }
 }

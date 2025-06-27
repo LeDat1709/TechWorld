@@ -1,0 +1,405 @@
+﻿@model TechWorld.Models.ShoppingCart
+@{
+    ViewData["Title"] = "Thanh toán";
+    var currentUser = ViewBag.CurrentUser as User;
+    var defaultAddress = ViewBag.DefaultUserAddress as UserAddress;
+    var bankInfo = ViewBag.BankInfo as TechWorld.Settings.BankInfoSettings;
+}
+
+<div class="container">
+    <h1 class="mb-4">Thanh toán</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Thông tin giao hàng</h5>
+                </div>
+                <div class="card-body">
+                    <form id="checkoutForm" asp-controller="Order" asp-action="PlaceOrder" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="All" class="text-danger"></div>
+
+                        @* @if (User.Identity.IsAuthenticated && defaultAddress != null) *@
+                        @* { *@
+                        @*     <div class="alert alert-info"> *@
+                        @*         <i class="fas fa-info-circle me-2"></i> *@
+                        @*         Thông tin dưới đây đã được điền tự động từ địa chỉ mặc định của bạn. Bạn có thể chỉnh sửa hoặc chọn địa chỉ khác. *@
+                        @*     </div> *@
+                        @* } *@
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="fullName" class="form-label">Họ tên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="fullName" name="fullName" required
+                                       value="@(currentUser != null ? currentUser.FullName : "")"
+                                       placeholder="Nhập họ và tên đầy đủ">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="phone" name="phone" required
+                                       value="@(defaultAddress != null ? defaultAddress.PhoneNumber : (currentUser?.Phone ?? ""))"
+                                       placeholder="Nhập số điện thoại">
+                            </div>
+                            <div class="col-12">
+                                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email" required
+                                       value="@(currentUser != null ? currentUser.Email : "")"
+                                       placeholder="Nhập địa chỉ email">
+                            </div>
+
+                            <div class="col-12">
+                                <label for="displayAddress" class="form-label">Địa chỉ giao hàng <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="displayAddress"
+                                           placeholder="Chọn địa chỉ giao hàng của bạn" readonly required
+                                           value="@(defaultAddress != null ? defaultAddress.FullAddressDisplay : "")">
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary" id="selectAddressBtn">
+                                            <i class="fas fa-map-marker-alt me-2"></i>Chọn địa chỉ
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary" onclick="alert('Vui lòng đăng nhập để sử dụng tính năng này')">
+                                            <i class="fas fa-map-marker-alt me-2"></i>Chọn địa chỉ
+                                        </button>
+                                    }
+                                </div>
+                                <span class="text-danger" id="addressValidationError" style="display: none;">Vui lòng chọn địa chỉ giao hàng.</span>
+                                @if (!User.Identity.IsAuthenticated)
+                                {
+                                    <small class="text-muted">Vui lòng đăng nhập để sử dụng tính năng chọn địa chỉ có sẵn.</small>
+                                }
+                            </div>
+
+                            <input type="hidden" id="hiddenAddress" name="address"
+                                   value="@(defaultAddress != null ? defaultAddress.Address : "")" />
+                            <input type="hidden" id="hiddenProvinceId" name="provinceId"
+                                   value="@(defaultAddress != null ? defaultAddress.ProvinceID.ToString() : "")" />
+                            <input type="hidden" id="hiddenDistrictId" name="districtId"
+                                   value="@(defaultAddress != null ? defaultAddress.DistrictID.ToString() : "")" />
+                            <input type="hidden" id="hiddenWardId" name="wardId"
+                                   value="@(defaultAddress != null ? defaultAddress.WardID.ToString() : "")" />
+                        </div>
+
+                        <div class="mb-3 mt-4">
+                            <label for="PromoCode" class="form-label">Mã giảm giá (tùy chọn)</label>
+                            <div class="input-group">
+                                <input type="text"
+                                       class="form-control"
+                                       id="PromoCode"
+                                       name="PromoCode"
+                                       placeholder="Nhập mã voucher" />
+                                <button class="btn btn-outline-secondary"
+                                        type="button"
+                                        id="applyVoucherBtn">
+                                    Áp dụng
+                                </button>
+                            </div>
+                            <div id="promoError" class="text-danger mt-1"></div>
+                        </div>
+
+                        <div class="mt-4">
+                            <h5>Phương thức thanh toán</h5>
+                            <div class="payment-methods mt-3">
+                                @if (ViewBag.PaymentMethods != null)
+                                {
+                                    @foreach (var paymentMethod in ViewBag.PaymentMethods)
+                                    {
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="radio" name="paymentMethodId"
+                                                   id="payment-@paymentMethod.PaymentMethodID" value="@paymentMethod.PaymentMethodID"
+                                            @(paymentMethod.PaymentMethodID == 1 ? "checked" : "")>
+                                            <label class="form-check-label" for="payment-@paymentMethod.PaymentMethodID">
+                                                @paymentMethod.MethodName
+                                            </label>
+                                        </div>
+
+                                        @if (paymentMethod.PaymentMethodID == 2)
+                                        {
+                                            <div id="bankInfoDisplay" class="ms-4 p-3 border rounded bg-light d-none">
+                                                <p class="mb-1">Vui lòng chuyển khoản đến thông tin tài khoản dưới đây:</p>
+                                                <ul class="list-unstyled mb-0">
+                                                    <li><strong>Ngân hàng:</strong> @bankInfo?.BankName</li>
+                                                    <li><strong>Chủ tài khoản:</strong> @bankInfo?.AccountName</li>
+                                                    <li><strong>Số tài khoản:</strong> <span class="fw-bold text-danger">@bankInfo?.AccountNumber</span></li>
+                                                </ul>
+                                                <p class="mt-2 mb-0 small text-muted">Nội dung chuyển khoản: Tên + SĐT. Mã QR thanh toán sẽ được cung cấp sau khi bạn hoàn tất đặt hàng.</p>
+                                            </div>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning">
+                                        Không có phương thức thanh toán khả dụng.
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label for="notes" class="form-label">Ghi chú (tùy chọn)</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"
+                                      placeholder="Ghi chú về đơn hàng, ví dụ: thời gian hay chỉ dẫn địa điểm giao hàng chi tiết hơn."></textarea>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Đơn hàng của bạn</h5>
+                </div>
+                <div class="card-body">
+                    <div class="order-summary">
+                        @if (Model.Items.Any())
+                        {
+                            @foreach (var item in Model.Items)
+                            {
+                                <div class="d-flex justify-content-between mb-3">
+                                    <div>
+                                        <span class="fw-bold">@item.ProductName</span>
+                                        <div class="text-muted small">@item.Quantity x @string.Format("{0:N0}", item.Price) VNĐ</div>
+                                    </div>
+                                    <div class="text-end">
+                                        @string.Format("{0:N0}", item.Total) VNĐ
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted">
+                                Giỏ hàng trống
+                            </div>
+                        }
+
+                        <hr />
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tạm tính:</span>
+                            <span id="subtotal">@string.Format("{0:N0}", Model.GetTotal()) VNĐ</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Phí vận chuyển:</span>
+                            <span class="text-success">Miễn phí</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2 d-none" id="voucherRow">
+                            <span>Giảm voucher (<span id="appliedPromoCode"></span>):</span>
+                            <span class="text-success">-<span id="discountAmount"></span> VNĐ</span>
+                        </div>
+                        <hr />
+                        <div class="d-flex justify-content-between mb-4">
+                            <strong>Tổng cộng:</strong>
+                            <strong class="text-danger fs-5">
+                                <span id="finalTotal">@string.Format("{0:N0}", Model.GetTotal())</span> VNĐ
+                            </strong>
+                        </div>
+                        @if (Model.Items.Any())
+                        {
+                            <button id="placeOrderBtn" type="button" class="btn btn-primary w-100">
+                                <i class="fas fa-check me-2"></i>Đặt hàng
+                            </button>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-shopping-cart me-2"></i>Tiếp tục mua sắm
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const SELECTED_ADDRESS_LS_KEY = 'SelectedUserAddress';
+        document.addEventListener('DOMContentLoaded', function() {
+            // Các elements cần thiết
+            const displayAddressInput = document.getElementById('displayAddress');
+            const selectAddressBtn = document.getElementById('selectAddressBtn');
+            const hiddenAddressInput = document.getElementById('hiddenAddress');
+            const phoneInput = document.getElementById('phone');
+            const hiddenProvinceIdInput = document.getElementById('hiddenProvinceId');
+            const hiddenDistrictIdInput = document.getElementById('hiddenDistrictId');
+            const hiddenWardIdInput = document.getElementById('hiddenWardId');
+            const addressValidationError = document.getElementById('addressValidationError');
+
+            // Các elements cho Voucher
+            const form = document.getElementById('checkoutForm');
+            const applyBtn = document.getElementById('applyVoucherBtn');
+            const placeBtn = document.getElementById('placeOrderBtn');
+            const codeInput = document.getElementById('PromoCode');
+            const errorEl = document.getElementById('promoError');
+            const voucherRow = document.getElementById('voucherRow');
+            const appliedCodeEl = document.getElementById('appliedPromoCode');
+            const discountEl = document.getElementById('discountAmount');
+            const subtotalEl = document.getElementById('subtotal');
+            const finalTotalEl = document.getElementById('finalTotal');
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            // Xử lý nút "Chọn địa chỉ"
+            if (selectAddressBtn) {
+                selectAddressBtn.addEventListener('click', function() {
+                    window.open('@Url.Action("Index", "Address", new { selectMode = true })', '_blank');
+                });
+            }
+
+            // Hàm để điền thông tin địa chỉ vào các trường
+            function populateAddressFields(addressData) {
+                if (addressData) {
+                    displayAddressInput.value = addressData.fullAddressDisplay;
+                    hiddenAddressInput.value = addressData.address;
+                    phoneInput.value = addressData.phoneNumber;
+                    hiddenProvinceIdInput.value = addressData.provinceID;
+                    hiddenDistrictIdInput.value = addressData.districtID;
+                    hiddenWardIdInput.value = addressData.wardID;
+                    addressValidationError.style.display = 'none';
+                } else {
+                    // Chỉ xóa nếu không có địa chỉ mặc định từ server
+                    if (!displayAddressInput.value) {
+                        displayAddressInput.value = '';
+                        hiddenAddressInput.value = '';
+                        phoneInput.value = '';
+                        hiddenProvinceIdInput.value = '';
+                        hiddenDistrictIdInput.value = '';
+                        hiddenWardIdInput.value = '';
+                        addressValidationError.style.display = 'block';
+                    }
+                }
+            }
+
+            // Kiểm tra localStorage khi trang tải và khi có sự kiện focus lại tab
+            function checkAndPopulateAddress() {
+                const storedAddress = localStorage.getItem(SELECTED_ADDRESS_LS_KEY);
+                if (storedAddress) {
+                    const addressData = JSON.parse(storedAddress);
+                    populateAddressFields(addressData);
+                    localStorage.removeItem(SELECTED_ADDRESS_LS_KEY);
+                }
+            }
+
+            // Lắng nghe sự kiện focus của cửa sổ để kiểm tra địa chỉ khi người dùng quay lại tab checkout
+            window.addEventListener('focus', checkAndPopulateAddress);
+            checkAndPopulateAddress();
+
+            // Hàm chung để áp voucher (AJAX)
+            async function tryApplyVoucher() {
+                errorEl.textContent = '';
+                voucherRow.classList.add('d-none');
+
+                const code = codeInput.value.trim();
+                const subtotal = parseInt(subtotalEl.textContent.replace(/[,\s]/g,''), 10);
+
+                if (!code) {
+                    // Reset về giá gốc khi xóa mã
+                    finalTotalEl.textContent = new Intl.NumberFormat('vi-VN').format(subtotal);
+                    return true;
+                }
+
+                try {
+                    const res = await fetch('@Url.Action("ValidateVoucher", "Order")', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
+                            __RequestVerificationToken: token,
+                            promoCode: code,
+                            subtotal: subtotal
+                        })
+                    });
+                    const data = await res.json();
+                    if (!data.success) {
+                        errorEl.textContent = data.error;
+                        finalTotalEl.textContent = new Intl.NumberFormat('vi-VN').format(subtotal);
+                        return false;
+                    }
+                    // Hiển thị kết quả
+                    appliedCodeEl.textContent = data.code;
+                    discountEl.textContent = new Intl.NumberFormat('vi-VN').format(data.discount);
+                    voucherRow.classList.remove('d-none');
+                    finalTotalEl.textContent = new Intl.NumberFormat('vi-VN').format(subtotal - data.discount);
+                    return true;
+                } catch (error) {
+                    console.error('Error validating voucher:', error);
+                    errorEl.textContent = 'Không thể kết nối server. Vui lòng thử lại.';
+                    return false;
+                }
+            }
+
+            // Gắn listener cho "Áp dụng"
+            if (applyBtn) {
+                applyBtn.addEventListener('click', function() {
+                    tryApplyVoucher();
+                });
+            }
+
+            if (codeInput) {
+                codeInput.addEventListener('input', function() {
+                    if (!this.value.trim()) {
+                        tryApplyVoucher();
+                    }
+                });
+            }
+
+            // Gắn listener cho "Đặt hàng"
+            if (placeBtn) {
+                placeBtn.addEventListener('click', async function() {
+                    // Kiểm tra địa chỉ
+                    if (!displayAddressInput.value || !hiddenAddressInput.value || !hiddenProvinceIdInput.value || !hiddenDistrictIdInput.value || !hiddenWardIdInput.value) {
+                        addressValidationError.style.display = 'block';
+                        displayAddressInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        return;
+                    } else {
+                        addressValidationError.style.display = 'none';
+                    }
+
+                    // HTML5 validation
+                    if (!form.checkValidity()) {
+                        form.reportValidity();
+                        return;
+                    }
+
+                    // Nếu đã nhập mã mà chưa apply
+                    if (codeInput && codeInput.value.trim() && voucherRow.classList.contains('d-none')) {
+                        const ok = await tryApplyVoucher();
+                        if (!ok) return;
+                        alert('Mã giảm giá đã được áp dụng. Vui lòng nhấn "Đặt hàng" một lần nữa để hoàn tất.');
+                        return;
+                    }
+
+                    // Disable button to prevent double submission
+                    placeBtn.disabled = true;
+                    placeBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+
+                    form.submit();
+                });
+            }
+
+            const paymentRadios = document.querySelectorAll('.payment-method-radio');
+            const bankInfoDisplay = document.getElementById('bankInfoDisplay');
+
+            function toggleBankInfo() {
+                const selectedPayment = document.querySelector('input[name="paymentMethodId"]:checked');
+                if (selectedPayment && selectedPayment.value === '2' && bankInfoDisplay) {
+                    bankInfoDisplay.classList.remove('d-none');
+                } else if (bankInfoDisplay) {
+                    bankInfoDisplay.classList.add('d-none');
+                }
+            }
+
+            paymentRadios.forEach(radio => {
+                radio.addEventListener('change', toggleBankInfo);
+            });
+
+            // Chạy lần đầu khi tải trang
+            toggleBankInfo();
+        });
+    </script>
+}

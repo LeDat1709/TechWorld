@@ -1,0 +1,128 @@
+﻿@model TechWorld.Models.User
+@{
+    ViewData["Title"] = "Chỉnh sửa hồ sơ";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Tài khoản của tôi</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a asp-controller="Account" asp-action="Profile" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-user me-2"></i>Hồ sơ của tôi
+                    </a>
+                    <a asp-controller="Account" asp-action="ChangePassword" class="list-group-item list-group-item-action">
+                        <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                    </a>
+                    <a asp-controller="Order" asp-action="History" class="list-group-item list-group-item-action">
+                        <i class="fas fa-history me-2"></i>Lịch sử đơn hàng
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-heart me-2"></i>Sản phẩm yêu thích
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-bell me-2"></i>Thông báo
+                    </a>
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        <button type="submit" class="list-group-item list-group-item-action text-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Chỉnh sửa hồ sơ</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-controller="Account" asp-action="Edit" method="post" class="needs-validation" novalidate>
+                        <input type="hidden" asp-for="UserID" />
+                        <input type="hidden" asp-for="UserName" />
+                        <input type="hidden" asp-for="Password" />
+                        <input type="hidden" asp-for="Role" />
+                        <input type="hidden" asp-for="CreatedAt" />
+
+                        <div class="row mb-3">
+                            <label asp-for="FullName" class="col-md-3 col-form-label">Họ tên</label>
+                            <div class="col-md-9">
+                                <input asp-for="FullName" class="form-control" required />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label asp-for="Email" class="col-md-3 col-form-label">Email</label>
+                            <div class="col-md-9">
+                                <input asp-for="Email" class="form-control" required />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label asp-for="Phone" class="col-md-3 col-form-label">Số điện thoại</label>
+                            <div class="col-md-9">
+                                <input asp-for="Phone" class="form-control" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label asp-for="Address" class="col-md-3 col-form-label">Địa chỉ</label>
+                            <div class="col-md-9">
+                                <textarea asp-for="Address" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-9 offset-md-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Lưu thay đổi
+                                </button>
+                                <a asp-controller="Account" asp-action="Profile" class="btn btn-outline-secondary ms-2">
+                                    <i class="fas fa-times me-2"></i>Hủy
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Example starter JavaScript for disabling form submissions if there are invalid fields
+        (function () {
+            'use strict'
+
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.querySelectorAll('.needs-validation')
+
+            // Loop over them and prevent submission
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
+}

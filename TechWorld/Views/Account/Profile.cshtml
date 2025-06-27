@@ -1,0 +1,136 @@
+﻿@model TechWorld.Models.User
+@{
+    ViewData["Title"] = "Thông tin tài khoản";
+    var rankName = ViewBag.RankName ?? "Chưa có hạng";
+    var points = ViewBag.Points ?? 0;
+}
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="avatar-wrapper me-3">
+                            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 20px;">
+                                @(Model.FullName != null ? Model.FullName.Substring(0, 1).ToUpper() : "U")
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">@Model.FullName</h5>
+                            <p class="text-muted mb-0 small">@Model.Email</p>
+                        </div>
+                    </div>
+
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="alert alert-info mt-3">
+                            <strong>Hạng:</strong> @rankName <br />
+                            <strong>Điểm thưởng:</strong> @points điểm
+                        </div>
+                    }
+
+                    <div class="list-group list-group-flush">
+                        <a asp-controller="Account" asp-action="Profile" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-user me-2"></i> Thông tin tài khoản
+                        </a>
+                        <a asp-controller="Order" asp-action="History" class="list-group-item list-group-item-action">
+                            <i class="fas fa-shopping-bag me-2"></i> Lịch sử đơn hàng
+                        </a>
+                        <a asp-controller="Account" asp-action="ChangePassword" class="list-group-item list-group-item-action">
+                            <i class="fas fa-lock me-2"></i> Đổi mật khẩu
+                        </a>
+                        <a asp-controller="Account" asp-action="Wishlist" class="list-group-item list-group-item-action">
+                            <i class="fas fa-heart me-2"></i> Sản phẩm yêu thích
+                        </a>
+                        <a asp-controller="Account" asp-action="Reviews" class="list-group-item list-group-item-action">
+                            <i class="fas fa-star me-2"></i> Đánh giá của tôi
+                        </a>
+                        <a asp-controller="Account" asp-action="Voucher" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tags me-2"></i> Voucher
+                        </a>
+                        <a asp-controller="Account" asp-action="TwoFactorSettings" class="btn btn-outline-primary mt-3">
+                            <i class="fas fa-shield-alt me-2"></i> Cài đặt xác thực hai lớp
+                        </a>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Admin" asp-action="Index" class="list-group-item list-group-item-action">
+                                <i class="fas fa-cogs me-2"></i> Chuyển đến trang Admin
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h4 class="card-title mb-0">Thông tin tài khoản</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="UpdateProfile" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="UserID" />
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="FullName" class="form-label">Họ và tên</label>
+                                <input asp-for="FullName" class="form-control" />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="UserName" class="form-label">Tên đăng nhập</label>
+                                <input asp-for="UserName" class="form-control" readonly />
+                                <span asp-validation-for="UserName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label">Email</label>
+                                <input asp-for="Email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Phone" class="form-label">Số điện thoại</label>
+                                <input asp-for="Phone" class="form-control" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

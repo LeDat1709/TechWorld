@@ -1,0 +1,59 @@
+﻿@model TechWorld.Models.OrderTracking
+@{
+    ViewData["Title"] = "Theo dõi đơn hàng";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h4 mb-0">Theo dõi đơn hàng</h1>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Nhập mã đơn hàng và email bạn đã sử dụng khi đặt hàng để kiểm tra trạng thái đơn hàng của bạn.</p>
+
+                    <form asp-action="TrackOrder" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="OrderNumber" class="form-label"></label>
+                            <input asp-for="OrderNumber" class="form-control" placeholder="Ví dụ: ORD123456789" />
+                            <span asp-validation-for="OrderNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" placeholder="Nhập email bạn đã sử dụng khi đặt hàng" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>Kiểm tra đơn hàng
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header bg-white">
+                    <h2 class="h5 mb-0">Bạn đã đăng nhập?</h2>
+                </div>
+                <div class="card-body">
+                    <p>Nếu bạn đã đăng nhập, bạn có thể xem tất cả đơn hàng của mình trong trang lịch sử đơn hàng.</p>
+                    <a asp-controller="Order" asp-action="History" class="btn btn-outline-primary">
+                        <i class="fas fa-history me-2"></i>Xem lịch sử đơn hàng
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

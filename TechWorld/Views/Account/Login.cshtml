@@ -1,0 +1,109 @@
+﻿@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <h1 class="h3 mb-3 fw-normal">Đăng nhập</h1>
+                        <p class="text-muted">Đăng nhập để tiếp tục mua sắm và theo dõi đơn hàng của bạn</p>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>@ViewBag.ErrorMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-controller="Account" asp-action="Login" method="post" class="needs-validation" novalidate>
+                        <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Tên đăng nhập hoặc email" required>
+                            <label for="username">Tên đăng nhập hoặc email</label>
+                            <div class="invalid-feedback">
+                                Vui lòng nhập tên đăng nhập hoặc email.
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Mật khẩu" required>
+                            <label for="password">Mật khẩu</label>
+                            <div class="invalid-feedback">
+                                Vui lòng nhập mật khẩu.
+                            </div>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" value="true" id="rememberMe" name="rememberMe">
+                            <label class="form-check-label" for="rememberMe">
+                                Ghi nhớ đăng nhập
+                            </label>
+                        </div>
+
+                        <div class="d-grid mb-4">
+                            <button class="btn btn-primary btn-lg" type="submit">
+                                <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+                            </button>
+                        </div>
+
+                        <div class="text-center mb-3">
+                            <a asp-controller="Account" asp-action="ForgotPassword" class="text-decoration-none">Quên mật khẩu?</a>
+                        </div>
+                    </form>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="border-top pt-3 text-center">
+                        <p>Bạn chưa có tài khoản? <a asp-controller="Account" asp-action="Register" class="text-decoration-none fw-bold">Đăng ký ngay</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-body">
+                    <div class="text-center">
+                        <h5 class="mb-3">Đăng nhập với</h5>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="#" class="btn btn-outline-primary">
+                                <i class="fab fa-facebook-f me-2"></i>Facebook
+                            </a>
+                            <a href="#" class="btn btn-outline-danger">
+                                <i class="fab fa-google me-2"></i>Google
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Example starter JavaScript for disabling form submissions if there are invalid fields
+        (function () {
+            'use strict'
+
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.querySelectorAll('.needs-validation')
+
+            // Loop over them and prevent submission
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
+}

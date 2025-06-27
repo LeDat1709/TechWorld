@@ -1,0 +1,93 @@
+﻿@model IEnumerable<TechWorld.Models.Order>
+@{
+    ViewData["Title"] = "Lịch sử đơn hàng";
+
+    // Định nghĩa màu sắc cho các trạng thái
+    var statusColors = new Dictionary<string, string>
+    {
+        { "Chờ xác nhận", "warning" },
+        { "Đã xác nhận", "info" },
+        { "Đang chuẩn bị hàng", "info" },
+        { "Đang giao hàng", "primary" },
+        { "Đã giao hàng", "success" },
+        { "Đã hủy", "danger" }
+    };
+}
+
+<div class="container py-5">
+    <h1 class="mb-4">Lịch sử đơn hàng</h1>
+
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle me-2"></i>@ViewBag.ErrorMessage
+        </div>
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-shopping-bag fa-4x text-muted mb-3"></i>
+                <h3>Không thể tải lịch sử đơn hàng</h3>
+                <p class="mb-4">Vui lòng thử lại sau hoặc liên hệ với bộ phận hỗ trợ</p>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                    <i class="fas fa-shopping-bag me-2"></i>Tiếp tục mua sắm
+                </a>
+            </div>
+        </div>
+    }
+    else if (Model != null && Model.Any())
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Thanh toán</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model)
+                            {
+                                var statusColor = statusColors.ContainsKey(order.OrderStatus) ? statusColors[order.OrderStatus] : "secondary";
+
+                                <tr>
+                                    <td>
+                                        <a asp-controller="Order" asp-action="OrderDetails" asp-route-id="@order.OrderID" class="text-decoration-none fw-bold">
+                                            #@order.OrderNumber
+                                        </a>
+                                    </td>
+                                    <td>@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@string.Format("{0:N0}", order.TotalAmount) VNĐ</td>
+                                    <td><span class="badge bg-@statusColor">@order.OrderStatus</span></td>
+                                    <td>@order.PaymentMethod?.MethodName</td>
+                                    <td class="text-end">
+                                        <a asp-controller="Order" asp-action="OrderDetails" asp-route-id="@order.OrderID" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> Chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-shopping-bag fa-4x text-muted mb-3"></i>
+                <h3>Bạn chưa có đơn hàng nào</h3>
+                <p class="mb-4">Hãy mua sắm để có thể xem lịch sử đơn hàng của bạn tại đây</p>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                    <i class="fas fa-shopping-bag me-2"></i>Tiếp tục mua sắm
+                </a>
+            </div>
+        </div>
+    }
+</div>

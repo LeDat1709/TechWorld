@@ -1,0 +1,135 @@
+﻿@model List<TechWorld.Models.Review>
+@{
+    ViewData["Title"] = "Đánh giá của tôi";
+
+    var fullName = ViewBag.FullName as string ?? User.Identity.Name;
+    var email = ViewBag.Email as string ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+    var rankName = ViewBag.RankName as string ?? "Chưa có hạng";
+    var points = ViewBag.Points as int? ?? 0;
+}
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar giống Wishlist -->
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="avatar-wrapper me-3">
+                            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 20px;">
+                                @(fullName != null && fullName.Length > 0 ? fullName.Substring(0, 1).ToUpper() : "U")
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">@fullName</h5>
+                            <p class="text-muted mb-0 small">@email</p>
+                        </div>
+                    </div>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="alert alert-info mt-3">
+                            <strong>Hạng:</strong> @rankName <br />
+                            <strong>Điểm thưởng:</strong> @points điểm
+                        </div>
+                    }
+                    <div class="list-group list-group-flush">
+                        <a asp-controller="Account" asp-action="Profile" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user me-2"></i> Thông tin tài khoản
+                        </a>
+                        <a asp-controller="Order" asp-action="History" class="list-group-item list-group-item-action">
+                            <i class="fas fa-shopping-bag me-2"></i> Lịch sử đơn hàng
+                        </a>
+                        <a asp-controller="Account" asp-action="ChangePassword" class="list-group-item list-group-item-action">
+                            <i class="fas fa-lock me-2"></i> Đổi mật khẩu
+                        </a>
+                        <a asp-controller="Account" asp-action="Wishlist" class="list-group-item list-group-item-action">
+                            <i class="fas fa-heart me-2"></i> Sản phẩm yêu thích
+                        </a>
+                        <a asp-controller="Account" asp-action="Reviews" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-star me-2"></i> Đánh giá của tôi
+                        </a>
+                        <a asp-controller="Account" asp-action="Voucher" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tags me-2"></i> Voucher
+                        </a>
+                        <a asp-controller="Account" asp-action="TwoFactorSettings" class="btn btn-outline-primary mt-3">
+                            <i class="fas fa-shield-alt me-2"></i> Cài đặt xác thực hai lớp
+                        </a>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Admin" asp-action="Index" class="list-group-item list-group-item-action">
+                                <i class="fas fa-cogs me-2"></i> Chuyển đến trang Admin
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nội dung chính -->
+        <div class="col-lg-9">
+            <h4 class="mb-4">Đánh giá của tôi</h4>
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (!Model.Any())
+            {
+                <p class="text-muted">Bạn chưa đánh giá sản phẩm nào.</p>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var review in Model)
+                    {
+                        var product = review.Product;
+                        var imagePath = product.ProductImages?.FirstOrDefault(i => i.IsMainImage)?.ImagePath;
+                        var imageUrl = string.IsNullOrEmpty(imagePath) ? "/images/no-image.jpg" : $"/images/{imagePath}";
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm">
+                                <div class="row g-0">
+                                    <div class="col-4">
+                                        <img src="@imageUrl" class="card-img-top" alt="@product.ProductName" style="height: 200px; object-fit: contain; padding:10px;" />
+                                    </div>
+                                    <div class="col-8">
+                                        <div class="card-body">
+                                            <h5 class="card-title">@product?.ProductName</h5>
+
+                                            <div class="rating mb-2">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    <i class="@(i <= review.Rating ? "fas" : "far") fa-star text-warning"></i>
+                                                }
+                                            </div>
+
+                                            <p class="text-muted mb-1"><small>@review.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small></p>
+
+                                            <p>@review.Comment</p>
+
+                                            <form asp-action="DeleteReview" asp-controller="Product" method="post" onsubmit="return confirm('Bạn có chắc muốn xoá đánh giá này?');">
+                                                <input type="hidden" name="reviewId" value="@review.ReviewID" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-trash-alt me-1"></i> Xoá đánh giá
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

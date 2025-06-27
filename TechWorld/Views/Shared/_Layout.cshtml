@@ -1,49 +1,443 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - TechWorld</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@ViewData["Title"] - ShopDienTu</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/TechWorld.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">TechWorld</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+    <!-- Header -->
+    <header class="header sticky-top">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg py-3">
+                <div class="container-fluid">
+                    <!-- Logo -->
+                    <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                        <h1 class="m-0">SHOPDIENTU.VN</h1>
+                    </a>
+
+                    <button id="sidebarToggleBtn" class="btn btn-dark d-lg-block me-3 py-2 px-3">
+                        <i class="fas fa-bars me-2"></i>
+                        <span>Danh mục</span>
+                    </button>
+
+                    <!-- Mobile Toggle Button -->
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <!-- Navbar Content -->
+                    <div class="collapse navbar-collapse" id="navbarContent">
+                        <!-- Search Bar -->
+                        <form class="d-flex mx-auto search-form" asp-controller="Home" asp-action="Index" method="get">
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="searchTerm" placeholder="Tìm kiếm sản phẩm...">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Header Actions -->
+                        <ul class="navbar-nav ms-auto header-actions">
+                            <li class="nav-item">
+                                <a asp-controller="Order" asp-action="TrackOrder" class="nav-link header-action-btn">
+                                    <i class="fas fa-truck"></i>
+                                    <span class="d-none d-md-inline ms-1">Theo dõi đơn hàng</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a asp-controller="Cart" asp-action="Index" class="nav-link header-action-btn position-relative">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span class="d-none d-md-inline ms-1">Giỏ hàng</span>
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count">
+                                        @await Component.InvokeAsync("CartSummary")
+                                    </span>
+                                </a>
+                            </li>
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle header-action-btn" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-user"></i>
+                                        <span class="d-none d-md-inline ms-1">@User.Identity.Name</span>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">Tài khoản của tôi</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Order" asp-action="History">Lịch sử đơn hàng</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form asp-controller="Account" asp-action="Logout" method="post">
+                                                <button type="submit" class="dropdown-item">Đăng xuất</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a asp-controller="Account" asp-action="Login" class="nav-link header-action-btn">
+                                        <i class="fas fa-user"></i>
+                                        <span class="d-none d-md-inline ms-1">Đăng nhập</span>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        </nav>
+            </nav>
+        </div>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+    <div id="global-sidebar" class="global-sidebar">
+        <div class="sidebar card h-100 rounded-0 border-0">
+            <!-- Đã xóa card-header. Nút đóng sẽ được xử lý qua overlay hoặc js -->
+            <div class="card-body p-0">
+                <ul class="category-list list-group list-group-flush">
+                    @if (ViewBag.Categories != null)
+                    {
+                        @foreach (var category in ViewBag.Categories)
+                        {
+                            <li class="list-group-item p-0">
+                                <div class="category-item"
+                                     data-category-id="@category.CategoryID" data-target-mega-menu="#mega-menu-@category.CategoryID.ToString().ToLower()">
+                                    <a href="#" class="d-flex justify-content-between align-items-center w-100 text-decoration-none p-3 text-dark">
+                                        <span>@category.CategoryName</span>
+                                        <i class="fas fa-chevron-right text-muted"></i>
+                                    </a>
+                                </div>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="list-group-item p-3 text-muted">Đang tải danh mục...</li>
+                    }
+                    <li class="list-group-item p-0">
+                        <div class="category-item" data-category-id="-1">
+                            <a href="#" class="d-flex justify-content-between align-items-center w-100 text-decoration-none p-3 text-dark">
+                                <span>Dịch vụ và thông tin khác</span>
+                                <i class="fas fa-chevron-right text-muted"></i>
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
+    @* Mega Menus (Bây giờ nằm riêng, được định vị fixed) *@
+    @if (ViewBag.Categories != null)
+    {
+        @foreach (var category in ViewBag.Categories)
+        {
+            <div id="mega-menu-@category.CategoryID.ToString().ToLower()" class="mega-menu-container">
+                <div class="mega-menu-header">
+                    <span class="mega-menu-title">@category.CategoryName</span>
+                </div>
+                <div class="mega-menu-content">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <h5 class="mega-menu-column-title">Thương hiệu</h5>
+                            <ul class="list-unstyled mega-menu-list">
+                                @foreach (var subcategory in category.SubCategories)
+                                {
+                                    <li>
+                                        <a href="@Url.Action("Index", "Home", new { subcategoryId = subcategory.SubCategoryID, categoryId = category.CategoryID, searchTerm = ViewBag.SearchTerm, sortOrder = ViewBag.CurrentSort, page = 1, pageSize = ViewBag.PageSize })">
+                                            @subcategory.SubCategoryName
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="mega-menu-column-title">Giá bán</h5>
+                            <ul class="list-unstyled mega-menu-list">
+                                <li><a href="@Url.Action("Index", "Home", new { minPrice = 0, maxPrice = 15000000, categoryId = category.CategoryID, searchTerm = ViewBag.SearchTerm, sortOrder = ViewBag.CurrentSort, page = 1, pageSize = ViewBag.PageSize })">Dưới 15 triệu</a></li>
+                                <li><a href="@Url.Action("Index", "Home", new { minPrice = 15000001, maxPrice = 20000000, categoryId = category.CategoryID, searchTerm = ViewBag.SearchTerm, sortOrder = ViewBag.CurrentSort, page = 1, pageSize = ViewBag.PageSize })">15 - 20 triệu</a></li>
+                                <li><a href="@Url.Action("Index", "Home", new { minPrice = 20000001, categoryId = category.CategoryID, searchTerm = ViewBag.SearchTerm, sortOrder = ViewBag.CurrentSort, page = 1, pageSize = ViewBag.PageSize })">Trên 20 triệu</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <main role="main" class="py-4">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer mt-5 py-5">
         <div class="container">
-            &copy; 2025 - TechWorld - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h3 class="text-primary mb-3">ShopDienTu</h3>
+                    <p>Cửa hàng điện tử uy tín hàng đầu Việt Nam</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h3 class="text-primary mb-3">Liên hệ</h3>
+                    <p><i class="fas fa-map-marker-alt me-2"></i> 123 Đường ABC, Quận XYZ, TP.HCM</p>
+                    <p><i class="fas fa-phone me-2"></i> 0123 456 789</p>
+                    <p><i class="fas fa-envelope me-2"></i> info@shopdientu.com</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h3 class="text-primary mb-3">Theo dõi chúng tôi</h3>
+                    <div class="social-icons">
+                        <a href="#" class="me-2"><i class="fab fa-facebook fa-2x"></i></a>
+                        <a href="#" class="me-2"><i class="fab fa-instagram fa-2x"></i></a>
+                        <a href="#" class="me-2"><i class="fab fa-youtube fa-2x"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <p class="mb-0">&copy; @DateTime.Now.Year - ShopDienTu. Tất cả quyền được bảo lưu.</p>
+                </div>
+            </div>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <!-- Thêm jQuery UI để hỗ trợ draggable -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+    <!-- Chat Widget -->
+    <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+            <span>SHOPDIENTU.VN</span>
+            <div class="header-buttons">
+                <button class="refresh-chat" title="Làm mới Chat">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                        <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3L23 4M1 20l4.65-1.65A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                </button>
+                <button class="close-chat" title="Đóng">×</button>
+            </div>
+        </div>
+        <div class="chat-content" id="chatContent">
+            <!-- Nội dung chat sẽ được thêm động bằng JavaScript -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Nhập câu hỏi của bạn..." />
+            <button onclick="sendChat()">Gửi</button>
+        </div>
+    </div>
+
+    <!-- Biểu tượng chat -->
+    <div class="chat-icon" id="chatIcon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l2.2-6.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+        </svg>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // --- BIẾN TOÀN CỤC ---
+            const $chatPopup = $('#chatPopup');
+            const $chatIcon = $('#chatIcon');
+            const $chatContent = $('#chatContent');
+            const $chatInput = $('#chatInput');
+
+            // Lấy lịch sử chat hoặc tạo mảng rỗng
+            let chatHistory = [];
+            try {
+                chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+            } catch (e) {
+                console.error("Lỗi parse lịch sử chat:", e);
+                localStorage.removeItem('chatHistory');
+            }
+
+            let hasGreeted = localStorage.getItem('hasGreeted') === 'true';
+
+            // --- HÀM HELPER ---
+            function appendMessage(type, content) {
+                let messageHtml;
+                if (type === 'typing') {
+                    messageHtml = `
+                        <div class="chat-message bot typing-indicator-container">
+                            <div class="bubble">
+                                <div class="typing-indicator">
+                                    <span></span><span></span><span></span>
+                                </div>
+                            </div>
+                        </div>`;
+                } else {
+                    const bubbleClass = type === 'user' ? 'user' : 'bot';
+                    const messageContainer = $('<div class="chat-message"></div>').addClass(bubbleClass);
+                    const bubble = $('<div class="bubble"></div>');
+
+                    if (type === 'user') {
+                        // Sử dụng .text() để chống tấn công XSS
+                        bubble.append($('<strong>').text('Bạn: '));
+                        bubble.append(document.createTextNode(content));
+                    } else {
+                        // Bot có thể trả về HTML (đã được sanitize từ server)
+                        bubble.html(content);
+                    }
+                    messageContainer.append(bubble);
+                    messageHtml = messageContainer;
+                }
+
+                const $message = $(messageHtml);
+                $chatContent.append($message);
+                // Cuộn xuống dưới cùng một cách mượt mà
+                $chatContent.animate({ scrollTop: $chatContent[0].scrollHeight }, 300);
+                return $message;
+            }
+
+            /** Tải lịch sử chat từ localStorage */
+            function loadChatHistory() {
+                $chatContent.empty();
+                if (chatHistory.length > 0) {
+                    chatHistory.forEach(item => {
+                        if(item.user) appendMessage('user', item.user);
+                        if(item.bot) appendMessage('bot', item.bot);
+                    });
+                }
+            }
+
+            /** Gửi tin nhắn */
+            function sendChat() {
+                const userInput = $chatInput.val().trim();
+                if (!userInput) return;
+
+                // Hiển thị tin nhắn người dùng và lưu vào lịch sử
+                appendMessage('user', userInput);
+                chatHistory.push({ user: userInput });
+
+                $chatInput.val('');
+
+                // Hiển thị typing indicator
+                const $typingIndicator = appendMessage('typing');
+
+                $.ajax({
+                    url: '/Chat/Chat', // Đảm bảo URL này đúng
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ userinput: userInput }),
+                    success: function (response) {
+                        let botResponse = '';
+                        if (response.success && response.html) {
+                            botResponse = response.html;
+                        } else {
+                            // Tạo response mặc định nếu có lỗi hoặc không thành công
+                            botResponse = `<strong>ShopDienTu:</strong> ${response.message || 'Xin lỗi, đã có lỗi xảy ra.'}`;
+                        }
+
+                        // Thêm response của bot vào lịch sử
+                        chatHistory[chatHistory.length - 1].bot = botResponse;
+                        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+
+                        appendMessage('bot', botResponse);
+                    },
+                    error: function () {
+                        const errorMessage = '<strong>ShopDienTu:</strong> Lỗi kết nối, vui lòng thử lại!';
+                        appendMessage('bot', errorMessage);
+                         // Lưu lỗi vào lịch sử
+                        chatHistory[chatHistory.length - 1].bot = errorMessage;
+                        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+                    },
+                    complete: function() {
+                        // Luôn xóa typing indicator sau khi hoàn tất
+                        $typingIndicator.remove();
+                    }
+                });
+            }
+
+
+            // --- EVENT LISTENERS ---
+
+            // Mở chat
+            $chatIcon.click(function () {
+                // Bước 1: Luôn đảm bảo nó có thể hiển thị trước khi chạy animation.
+                // Bằng cách này, nó sẽ ghi đè bất kỳ style `display: none` nào còn sót lại.
+                $chatPopup.css('display', 'flex');
+
+                // Bước 2: Chạy animation mở.
+                // Dùng một khoảng trễ nhỏ để trình duyệt kịp "nhận" thay đổi display.
+                setTimeout(() => {
+                    $chatPopup.removeClass('hide').addClass('show');
+                }, 10); // 10ms là đủ
+
+                $chatIcon.removeClass('visible').addClass('hidden');
+                $chatInput.focus();
+
+                // Logic chào mừng và tải lịch sử giữ nguyên
+                if (!hasGreeted) {
+                    const welcomeMessage = '<strong>ShopDienTu:</strong> Chào bạn! Mình là trợ lý ảo của ShopDienTu. Mình có thể giúp gì cho bạn?';
+                    appendMessage('bot', welcomeMessage);
+                    chatHistory.push({ bot: welcomeMessage });
+                    localStorage.setItem('hasGreeted', 'true');
+                    hasGreeted = true;
+                } else { // Tải lại lịch sử mỗi khi mở
+                     loadChatHistory();
+                }
+            });
+
+            // Đóng chat
+            $('.close-chat').click(function () {
+                // Bước 1: Chạy animation đóng.
+                $chatPopup.removeClass('show').addClass('hide');
+                $chatIcon.removeClass('hidden').addClass('visible');
+
+                // Bước 2: Sau khi animation kết thúc (300ms), ẩn hoàn toàn phần tử.
+                // Điều này quan trọng để nó không chặn các click chuột bên dưới nó.
+                setTimeout(() => {
+                    // Chỉ ẩn nếu người dùng không mở lại nó ngay lập tức
+                    if (!$chatPopup.hasClass('show')) {
+                        $chatPopup.css('display', 'none');
+                    }
+                }, 300); // Thời gian này PHẢI khớp với thời gian transition trong CSS
+            });
+
+            // Làm mới chat
+            $('.refresh-chat').click(function () {
+                $chatContent.empty();
+                chatHistory = [];
+                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+                localStorage.removeItem('hasGreeted');
+                hasGreeted = false;
+
+                const welcomeMessage = '<strong>ShopDienTu:</strong> Chào bạn! Mình là trợ lý ảo của ShopDienTu. Mình có thể giúp gì cho bạn?';
+                appendMessage('bot', welcomeMessage);
+                chatHistory.push({ bot: welcomeMessage });
+                localStorage.setItem('hasGreeted', 'true');
+                hasGreeted = true;
+            });
+
+            // Gửi bằng phím Enter
+            $chatInput.keypress(function (e) {
+                if (e.which === 13 && !e.shiftKey) { // Gửi khi nhấn Enter, không gửi khi nhấn Shift+Enter
+                    e.preventDefault();
+                    sendChat();
+                }
+            });
+
+            // Gửi bằng nút bấm
+            $('.chat-input button').click(sendChat);
+
+            // Kéo thả cửa sổ chat
+            $chatPopup.draggable({
+                handle: '.chat-header',
+                containment: 'window',
+                scroll: false
+            });
+
+            // Load lịch sử khi trang được tải lần đầu
+            loadChatHistory();
+        });
+    </script>
 </body>
 </html>

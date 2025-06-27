@@ -1,4 +1,5 @@
-﻿namespace TechWorld.Models
+﻿using System.Threading.Tasks;
+namespace TechWorld.Models
 {
     public interface IEmailService
     {

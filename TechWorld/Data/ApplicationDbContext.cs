@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using TechWorld.Models;
-using static TechWorld.Models.WishListItems;
+using static TechWorld.Models.WishList;
 using System;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 namespace TechWorld.Data
@@ -32,7 +32,7 @@ namespace TechWorld.Data
         public DbSet<District> Districts { get; set; }
         public DbSet<Province> Provinces { get; set; }
         public DbSet<Ward> Wards { get; set; }
-        public DbSet<WishList> WishLists { get; set; }
+        public DbSet<Models.WishList> WishLists { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

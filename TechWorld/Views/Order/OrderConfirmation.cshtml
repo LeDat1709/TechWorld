@@ -1,0 +1,82 @@
+﻿@model TechWorld.Models.Order
+@{
+    ViewData["Title"] = "Đặt hàng thành công";
+
+    // Lấy thông tin khách hàng
+    string email = Model.User?.Email;
+
+    // Nếu không có User, sử dụng thông tin khách vãng lai từ ViewBag
+    if (Model.User == null && ViewBag.GuestInfo != null)
+    {
+        email = ViewBag.GuestInfo.Email;
+    }
+
+    var bankInfo = ViewBag.BankInfo as TechWorld.Settings.BankInfoSettings;
+}
+@if (Model == null)
+{
+    <div class="alert alert-danger">Model rỗng - đơn hàng không được truyền sang View.</div>
+}
+else
+{
+    <div class="alert alert-success">Model hợp lệ - đơn hàng: @Model.OrderNumber</div>
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card text-center">
+                <div class="card-body py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success fa-5x"></i>
+                    </div>
+                    <h1 class="h3 mb-3">Đặt hàng thành công!</h1>
+                    <p class="mb-4">Cảm ơn bạn đã đặt hàng tại TechWorld. Đơn hàng của bạn đã được tiếp nhận và đang được xử lý.</p>
+
+                    <div class="order-info mb-4">
+                        <h5>Thông tin đơn hàng</h5>
+                        <p class="mb-1"><strong>Mã đơn hàng:</strong> #@Model.OrderNumber</p>
+                        <p class="mb-1"><strong>Ngày đặt hàng:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                        <p class="mb-1"><strong>Tổng tiền:</strong> @string.Format("{0:N0}", Model.TotalAmount) VNĐ</p>
+                        <p class="mb-1"><strong>Phương thức thanh toán:</strong> @Model.PaymentMethod?.MethodName</p>
+                    </div>
+
+                    @if (Model.PaymentMethodID == 2 && ViewBag.QrCodeImage != null && bankInfo != null)
+                    {
+                        <hr class="my-4" />
+                        <div class="payment-qr-section mb-4">
+                            <h5>Thông tin thanh toán</h5>
+                            <p>Vui lòng quét mã QR dưới đây để thanh toán cho đơn hàng của bạn.</p>
+
+                            <div class="row justify-content-center align-items-center g-3 mt-2">
+                                <div class="col-auto">
+                                    <img src="@ViewBag.QrCodeImage" alt="Mã QR thanh toán VietQR" class="img-fluid rounded border p-1 bg-white" style="max-width: 220px;" />
+                                </div>
+                                <div class="col-auto text-start">
+                                    <ul class="list-unstyled mb-0">
+                                        <li><strong>Ngân hàng:</strong> @bankInfo.BankName</li>
+                                        <li><strong>Chủ tài khoản:</strong> @bankInfo.AccountName</li>
+                                        <li><strong>Số tài khoản:</strong> @bankInfo.AccountNumber</li>
+                                        <li class="mt-2"><strong>Số tiền:</strong> <span class="fw-bold text-danger fs-5">@Model.TotalAmount.Value.ToString("N0") VNĐ</span></li>
+                                        <li><strong>Nội dung:</strong> <span class="fw-bold">Thanh toan don hang @Model.OrderNumber</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <p class="small text-muted mt-3">Mã QR đã bao gồm số tiền và nội dung chuyển khoản. Bạn chỉ cần quét và xác nhận.</p>
+                        </div>
+                        <hr class="my-4" />
+                    }
+
+                    <div class="d-flex justify-content-center gap-3">
+                        <a asp-controller="Order" asp-action="OrderDetails" asp-route-id="@Model.OrderID" class="btn btn-primary">
+                            <i class="fas fa-eye me-2"></i>Xem chi tiết đơn hàng
+                        </a>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary">
+                            <i class="fas fa-home me-2"></i>Về trang chủ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,138 @@
+﻿@model TechWorld.Models.ShoppingCart
+@{
+    ViewData["Title"] = "Giỏ hàng";
+}
+
+<div class="container">
+    <h1 class="mb-4">Giỏ hàng của bạn</h1>
+
+    @if (Model.Items.Count > 0)
+    {
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Sản phẩm trong giỏ hàng (@Model.GetTotalItems())</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-center">Đơn giá</th>
+                                        <th class="text-center">Số lượng</th>
+                                        <th class="text-end">Thành tiền</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Items)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="/images/@item.ImagePath" alt="@item.ProductName" class="img-thumbnail me-3" style="width: 80px; height: 80px; object-fit: contain;">
+                                                    <div>
+                                                        <h6 class="mb-0">@item.ProductName</h6>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">@string.Format("{0:N0}", item.Price) VNĐ</td>
+                                            <td class="text-center">
+                                                <form asp-controller="Cart" asp-action="UpdateQuantity" method="post" class="d-flex justify-content-center align-items-center">
+                                                    <input type="hidden" name="productId" value="@item.ProductID">
+                                                    <div class="input-group" style="width: 120px;">
+                                                        <button class="btn btn-outline-secondary" type="button" onclick="decrementQuantity(this)">-</button>
+                                                        <input type="number" name="quantity" class="form-control text-center" value="@item.Quantity" min="1" onchange="this.form.submit()">
+                                                        <button class="btn btn-outline-secondary" type="button" onclick="incrementQuantity(this)">+</button>
+                                                    </div>
+                                                </form>
+                                            </td>
+                                            <td class="text-end">@string.Format("{0:N0}", item.Total) VNĐ</td>
+                                            <td class="text-end">
+                                                <form asp-controller="Cart" asp-action="RemoveFromCart" method="post">
+                                                    <input type="hidden" name="productId" value="@item.ProductID">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white d-flex justify-content-between">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Tiếp tục mua sắm
+                        </a>
+                        <form asp-controller="Cart" asp-action="ClearCart" method="post">
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="fas fa-trash me-2"></i>Xóa giỏ hàng
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Tóm tắt đơn hàng</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Tạm tính:</span>
+                            <span>@string.Format("{0:N0}", Model.GetTotal()) VNĐ</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Phí vận chuyển:</span>
+                            <span>Miễn phí</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-4">
+                            <strong>Tổng cộng:</strong>
+                            <strong class="text-danger fs-5">@string.Format("{0:N0}", Model.GetTotal()) VNĐ</strong>
+                        </div>
+                        <a asp-controller="Cart" asp-action="Checkout" class="btn btn-primary w-100">
+                            <i class="fas fa-check me-2"></i>Tiến hành thanh toán
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                <h3>Giỏ hàng của bạn đang trống</h3>
+                <p class="mb-4">Hãy thêm sản phẩm vào giỏ hàng để tiến hành mua sắm</p>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                    <i class="fas fa-shopping-bag me-2"></i>Tiếp tục mua sắm
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function incrementQuantity(button) {
+            const input = button.previousElementSibling;
+            input.value = parseInt(input.value) + 1;
+            input.form.submit();
+        }
+
+        function decrementQuantity(button) {
+            const input = button.nextElementSibling;
+            const currentValue = parseInt(input.value);
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+                input.form.submit();
+            }
+        }
+    </script>
+}
