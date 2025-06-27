@@ -1,5 +1,7 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using TechWorld.Data;
 using TechWorld.Models;
 
 namespace TechWorld.Controllers
